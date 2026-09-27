@@ -18,6 +18,9 @@ let session=null;
 function esc(v=''){return String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
 
 async function isAdmin(){
+  // In production/cloud mode, only an authenticated user listed in
+  // public.admin_users may manage products. Local fallback is retained only
+  // for offline prototype testing.
   if(!cloud()) return true;
   const {data:{session:s}}=await window.OPQ_SUPABASE.auth.getSession();
   session=s;
@@ -73,11 +76,13 @@ $('cancelBtn').onclick=reset;
 window.edit=edit;window.removeProduct=removeProduct;
 
 async function init(){
+  $('productForm').style.opacity='.45';
+  $('productForm').style.pointerEvents='none';
   if(cloud()){
     $('modeNote').innerHTML='<b>Cloud mode:</b> Supabase is configured. Sign in with the admin account you created for this store.';
     $('loginPanel').style.display='block';
     const ok=await isAdmin();
-    if(ok){$('loginPanel').style.display='none';$('authStatus').textContent=session?.user?.email||'Admin';$('logoutBtn').style.display='inline';await render()}
+    if(ok){$('loginPanel').style.display='none';$('authStatus').textContent=session?.user?.email||'Admin';$('logoutBtn').style.display='inline';$('productForm').style.opacity='1';$('productForm').style.pointerEvents='auto';await render()}
     else {$('authStatus').textContent='Admin sign-in required';$('productForm').style.opacity='.45';$('productForm').style.pointerEvents='none';}
     window.OPQ_SUPABASE.auth.onAuthStateChange(async (_event,s)=>{session=s;const ok=await isAdmin();$('loginPanel').style.display=ok?'none':'block';$('productForm').style.opacity=ok?'1':'.45';$('productForm').style.pointerEvents=ok?'auto':'none';$('logoutBtn').style.display=ok?'inline':'none';$('authStatus').textContent=ok?(s?.user?.email||'Admin'):'Admin sign-in required';if(ok)await render()});
   } else await render();
