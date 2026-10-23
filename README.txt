@@ -1,28 +1,15 @@
-OUTFITS WITH PEREZ & QHASUKHU — V7 PRODUCTION FOUNDATION
+OUTFITS WITH PEREZ & QHASUKHU — WEBSITE
 
-This package is the production-connected foundation for the deployed store.
+Static storefront deployed on Vercel, with Supabase for product data, authentication and product images.
 
-IMPORTANT
-- database/supabase-config.js contains the browser-safe Supabase publishable/anon key.
-- Never put a Supabase secret/service-role key in browser files.
-- Admin access is restricted by Supabase Auth + public.admin_users.
-- Product records are stored in Supabase when cloud mode is configured.
-- Product images are stored in the public product-images bucket.
+Main files: index.html, styles.css, app.js, admin.html, admin.js, supabase-config.js, supabase-client.js.
 
-DEPLOYMENT
-1. Replace the corresponding files in the GitHub repository with this V7 package.
-2. Commit the changes.
-3. Vercel will redeploy from GitHub.
-4. Open /admin.html and sign in with the Supabase Auth admin account.
-5. Add a test product and verify it appears in the storefront.
-6. Delete the test product if desired.
+Admin dashboard: /admin.html. Only a logged-in user whose Auth user ID exists in public.admin_users should be able to manage products. The page now fails closed if Supabase config fails to load.
 
-CURRENT PRODUCTION URL
-https://axciggoyljregnvlxvxf.supabase.co
+Products are stored in public.products. Images are uploaded to the product-images Storage bucket.
 
-NEXT PRODUCTION MILESTONE
-- Orders dashboard
-- Customer order records
-- M-Pesa checkout/callbacks through a secure server/edge function
-- Custom domain
-- Final security/SEO/policy pass
+The browser configuration uses the Supabase project URL and publishable key. Never use a secret/service-role key in browser JavaScript.
+
+If product upload fails, note the exact error displayed. Common causes are missing product-images Storage INSERT policy for authorized admins, missing products INSERT/UPDATE policies, a missing admin_users membership/policy, or a file larger than 6 MB.
+
+Do not rerun schema.sql on the live database unless you have reviewed the statements and specifically intend to modify the database.

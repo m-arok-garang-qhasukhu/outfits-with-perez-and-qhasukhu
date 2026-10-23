@@ -18,10 +18,8 @@ let session=null;
 function esc(v=''){return String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
 
 async function isAdmin(){
-  // In production/cloud mode, only an authenticated user listed in
-  // public.admin_users may manage products. Local fallback is retained only
-  // for offline prototype testing.
-  if(!cloud()) return true;
+  // Fail closed: the admin dashboard must never fall back to local-only mode.
+  if(!cloud()) return false;
   const {data:{session:s}}=await window.OPQ_SUPABASE.auth.getSession();
   session=s;
   if(!s) return false;
@@ -78,15 +76,22 @@ window.edit=edit;window.removeProduct=removeProduct;
 async function init(){
   $('productForm').style.opacity='.45';
   $('productForm').style.pointerEvents='none';
+  [...$('productForm').querySelectorAll('input,select,textarea,button')].forEach(el=>el.disabled=true);
+  if(!cloud()){
+    $('loginPanel').style.display='none';
+    $('modeNote').innerHTML='<b>Connection unavailable:</b> Supabase configuration did not load. Product management is locked for safety. Check that supabase-config.js and supabase-client.js are in the repository root and redeploy.';
+    $('authStatus').textContent='Cloud connection unavailable';
+    return;
+  }
   if(cloud()){
     $('modeNote').innerHTML='<b>Cloud mode:</b> Supabase is configured. Sign in with the admin account you created for this store.';
     $('loginPanel').style.display='block';
     const ok=await isAdmin();
-    if(ok){$('loginPanel').style.display='none';$('authStatus').textContent=session?.user?.email||'Admin';$('logoutBtn').style.display='inline';$('productForm').style.opacity='1';$('productForm').style.pointerEvents='auto';await render()}
+    if(ok){$('loginPanel').style.display='none';$('authStatus').textContent=session?.user?.email||'Admin';$('logoutBtn').style.display='inline';$('productForm').style.opacity='1';$('productForm').style.pointerEvents='auto';[...$('productForm').querySelectorAll('input,select,textarea,button')].forEach(el=>el.disabled=false);await render()}
     else {$('authStatus').textContent='Admin sign-in required';$('productForm').style.opacity='.45';$('productForm').style.pointerEvents='none';}
-    window.OPQ_SUPABASE.auth.onAuthStateChange(async (_event,s)=>{session=s;const ok=await isAdmin();$('loginPanel').style.display=ok?'none':'block';$('productForm').style.opacity=ok?'1':'.45';$('productForm').style.pointerEvents=ok?'auto':'none';$('logoutBtn').style.display=ok?'inline':'none';$('authStatus').textContent=ok?(s?.user?.email||'Admin'):'Admin sign-in required';if(ok)await render()});
+    window.OPQ_SUPABASE.auth.onAuthStateChange(async (_event,s)=>{session=s;const ok=await isAdmin();$('loginPanel').style.display=ok?'none':'block';$('productForm').style.opacity=ok?'1':'.45';$('productForm').style.pointerEvents=ok?'auto':'none';[...$('productForm').querySelectorAll('input,select,textarea,button')].forEach(el=>el.disabled=!ok);$('logoutBtn').style.display=ok?'inline':'none';$('authStatus').textContent=ok?(s?.user?.email||'Admin'):'Admin sign-in required';if(ok)await render()});
   } else await render();
 }
-$('loginForm').onsubmit=async e=>{e.preventDefault();const {error}=await window.OPQ_SUPABASE.auth.signInWithPassword({email:$('loginEmail').value.trim(),password:$('loginPassword').value});$('loginMsg').textContent=error?error.message:'Signed in. Checking admin access…'};
+$('loginForm').onsubmit=async e=>{e.preventDefault();if(!cloud()){ $('loginMsg').textContent='Cloud connection unavailable. Please contact the site administrator.'; return; } const {error}=await window.OPQ_SUPABASE.auth.signInWithPassword({email:$('loginEmail').value.trim(),password:$('loginPassword').value});$('loginMsg').textContent=error?error.message:'Signed in. Checking admin access…'};
 $('logoutBtn').onclick=()=>window.OPQ_SUPABASE.auth.signOut();
 init();
