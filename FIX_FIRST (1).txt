@@ -1,0 +1,24 @@
+OUTFITS WITH PEREZ & QHASUKHU — FIX FIRST
+
+Why the admin/upload issue likely happened
+The HTML was looking for Supabase scripts in database/ while the GitHub upload screenshot showed supabase-config.js and supabase-client.js at the repository root. If the scripts fail to load, the previous admin code could fall back to local browser storage and allow the page to appear open.
+
+This corrected package matches the root-file layout and makes the admin dashboard fail closed if Supabase does not load.
+
+Upload these files to the ROOT of your GitHub repository, replacing the existing files with the same names:
+- index.html
+- admin.html
+- admin.js
+- app.js
+- styles.css
+- supabase-config.js
+- supabase-client.js
+- schema.sql (reference only; do not rerun unless specifically instructed)
+- README.txt
+- FIX_FIRST.txt
+
+Do NOT upload the database folder as a nested folder for this root-layout version. Do not rerun schema.sql; the database has already been set up.
+
+After committing, wait for Vercel deployment to complete. Then open /admin.html. If the config is loaded, it should show Admin sign in. Sign in with the email/password of the Auth user that was added to public.admin_users. If sign-in succeeds but the product manager remains locked, the admin_users SELECT policy or user membership needs checking.
+
+Security: never expose a Supabase secret/service-role key in browser code. The publishable key is the browser key. Keep database RLS and Storage policies enabled.

@@ -1,0 +1,44 @@
+OUTFITS WITH PEREZ & QHASUKHU — V4 FOUNDATION
+
+This package is the next step toward a REAL online store.
+
+WHAT V4 ADDS
+- A production database schema for products and orders (Supabase/Postgres).
+- Product fields for price, category, sizes, images, availability, new/featured flags.
+- Order records and order items.
+- Order/payment status fields ready for M-Pesa integration.
+- Database indexes and updated timestamps.
+- Row Level Security foundation.
+- A safe browser-side configuration placeholder.
+
+IMPORTANT
+This is the foundation, not a live backend yet. No account credentials are included.
+
+NEXT SETUP STEPS
+1. Create a Supabase project.
+2. Open its SQL Editor.
+3. Run: database/schema.sql
+4. Copy the project's public URL and public anon/publishable key into:
+   database/supabase-config.js
+5. Configure Supabase Auth for the owner/admin.
+6. Create a private storage bucket for product images.
+7. Add authenticated admin policies for products.
+8. Connect the storefront/admin JavaScript to the database.
+9. Add a server/edge function for secure order creation and M-Pesa callbacks.
+10. Deploy the site and admin under the final domain.
+
+SECURITY RULE
+Never put a service-role/secret key into index.html, app.js, admin.js, or any other browser file.
+
+BUSINESS FLOW WE ARE BUILDING
+Customer -> Store -> Cart -> Checkout -> M-Pesa -> Order database
+                         |
+                         v
+                 Owner Admin Dashboard
+                         |
+                         v
+              Confirm -> Process -> Deliver
+
+V3 remains the working storefront baseline. V4 supplies the real database
+blueprint so we can stop relying on browser localStorage when the backend is
+connected.
