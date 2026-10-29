@@ -26,6 +26,7 @@
 <div class="actions full"><button class="btn btn-dark admin-action" type="submit" id="saveBtn"><span>Submit Product</span></button><button class="btn admin-secondary" type="button" id="cancelBtn"><span>Cancel / Clear Form</span></button></div>
 </form></section>
 <section class="panel"><h2>Products <span id="count" style="font:11px 'DM Sans';color:#888"></span></h2><div style="overflow:auto"><table class="admin-table"><thead><tr><th>Item</th><th>Name</th><th>Category</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead><tbody id="rows"></tbody></table></div></section>
+<section class="panel" id="ordersPanel"><h2>Customer orders <span id="orderCount" style="font:11px 'DM Sans';color:#888"></span></h2><p style="font-size:11px;color:#777;line-height:1.6">Orders submitted through the website appear here. Payment is coordinated manually through WhatsApp for now.</p><div style="overflow:auto"><table class="admin-table"><thead><tr><th>Order</th><th>Customer</th><th>Items</th><th>Total</th><th>Payment</th><th>Order status</th><th>Update</th></tr></thead><tbody id="orderRows"></tbody></table></div><button class="btn admin-secondary" type="button" id="refreshOrders">Refresh orders</button><p id="ordersMessage" role="status" style="font-size:11px;color:#777"></p></section>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>

@@ -93,7 +93,17 @@
   <footer><div class="footer-brand"><img class="footer-logo" src="logo.svg" alt="P/Q logo"><div><strong>OUTFITS WITH PEREZ & QHASUKHU</strong><small>YOUR STYLE. YOUR FIT. YOUR OCCASION.</small></div></div><p>© 2026 Outfits with Perez & Qhasukhu. All rights reserved.</p><a href="admin.html">Admin</a></footer>
 
   <div class="modal-backdrop" id="modalBackdrop" hidden><div class="modal" id="productModal"></div></div>
-  <aside class="cart-drawer" id="cartDrawer"><div class="drawer-head"><h3>Your bag</h3><button id="closeCart">×</button></div><div id="cartItems"></div><div class="drawer-foot"><div><span>Estimated total</span><strong id="cartTotal">KSh 0</strong></div><button class="btn btn-dark full" id="whatsappOrder">Continue Order on WhatsApp</button><p class="payment-note">Your order details are prepared for WhatsApp. Payment is coordinated with our team for now.</p><button class="clear-btn" id="clearCart">Clear bag</button></div></aside>
+  <aside class="cart-drawer" id="cartDrawer"><div class="drawer-head"><h3>Your bag</h3><button id="closeCart">×</button></div><div id="cartItems"></div><div class="drawer-foot"><div><span>Estimated total</span><strong id="cartTotal">KSh 0</strong></div><button class="btn btn-dark full" id="checkoutStart">Place order on website</button><p class="payment-note">Your order is saved to the store. We will coordinate payment with you on WhatsApp for now.</p>
+<form id="checkoutForm" class="checkout-form" hidden>
+  <h4>Delivery details</h4>
+  <label>Full name<input id="checkoutName" name="customer_name" required autocomplete="name" maxlength="120"></label>
+  <label>Phone number<input id="checkoutPhone" name="phone" required autocomplete="tel" maxlength="30" placeholder="e.g. 07xx xxx xxx"></label>
+  <label>Delivery address / town<textarea id="checkoutAddress" name="delivery_address" rows="2" required maxlength="500"></textarea></label>
+  <label>Order notes (optional)<textarea id="checkoutNotes" name="notes" rows="2" maxlength="1000" placeholder="Delivery instructions or tailoring notes"></textarea></label>
+  <button class="btn btn-dark full" type="submit" id="submitOrder">Submit order</button>
+  <p id="checkoutMessage" role="status" class="payment-note"></p>
+  <button type="button" id="checkoutCancel" class="clear-btn">Back to bag</button>
+</form><button class="clear-btn" id="clearCart">Clear bag</button></div></aside>
   <div class="drawer-overlay" id="drawerOverlay" hidden></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>

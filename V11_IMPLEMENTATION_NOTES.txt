@@ -1,0 +1,13 @@
+V11 IMPLEMENTATION NOTES
+
+This build adds a website checkout form that submits orders to the Supabase RPC create_store_order, then opens WhatsApp for payment coordination. It also adds an admin Customer Orders panel. Customer-submitted prices are NOT trusted; the database function recalculates the order total using current product prices.
+
+REQUIRED BEFORE DEPLOYMENT: In Supabase SQL Editor, run MIGRATION_V11_ORDERS_REVIEWS.sql ONCE against the existing project. Do not rerun schema.sql or SETUP_NOW.sql. Back up the project/database first if you have important live orders.
+
+SECURITY NOTES: Anonymous customers cannot directly select orders. The create_store_order RPC validates inputs and inserts orders server-side. Only accounts listed in public.admin_users can read/update orders and moderate reviews. Product review submissions are held for moderation and remain invisible until approved.
+
+TEST CHECKLIST AFTER SQL + DEPLOY: (1) product catalogue loads; (2) add item to bag; (3) submit a test order; (4) confirm order and line items appear in Admin > Customer orders; (5) update status/payment status; (6) sign out and verify admin orders are not accessible. Do not mark payment paid until the money is independently confirmed.
+
+Payments: M-Pesa automation is intentionally not implemented yet. The current checkout creates the order and then opens WhatsApp for manual payment coordination.
+
+Reviews: SQL storage and moderation backend are included, but the customer-facing review form and admin approve/reject controls are not yet wired in this release; those are the next minor upgrade.

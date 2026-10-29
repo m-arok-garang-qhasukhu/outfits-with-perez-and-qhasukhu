@@ -37,7 +37,24 @@ async function getProducts(){
 
 async function render(){
   const p=await getProducts();$('count').textContent=`(${p.length})`;
-  $('rows').innerHTML=p.map(x=>`<tr><td>${x.image?`<img class="admin-thumb" src="${esc(x.image)}" alt="">`:'—'}</td><td><b>${esc(x.name)}</b><br><small>${x.new?'New • ':''}${esc(x.sizes||'Custom sizing')}</small></td><td>${esc(x.category)}</td><td>${money(x.price)}</td><td><span class="status ${x.available!==false?'available':'unavailable'}">${x.available!==false?'Available':'Unavailable'}</span></td><td><div class="actions"><button onclick="edit('${String(x.id)}')">Edit</button><button class="danger" onclick="removeProduct('${String(x.id)}')">Delete</button></div></td></tr>`).join('')}
+  $('rows').innerHTML=p.map(x=>`<tr><td>${x.image?`<img class="admin-thumb" src="${esc(x.image)}" alt="">`:'—'}</td><td><b>${esc(x.name)}</b><br><small>${x.new?'New • ':''}${esc(x.sizes||'Custom sizing')}</small></td><td>${esc(x.category)}</td><td>${money(x.price)}</td><td><span class="status ${x.available!==false?'available':'unavailable'}">${x.available!==false?'Available':'Unavailable'}</span></td><td><div class="actions"><button onclick="edit('${String(x.id)}')">Edit</button><button class="danger" onclick="removeProduct('${String(x.id)}')">Delete</button></div></td></tr>`).join(''); await renderOrders()}
+
+const orderStatusOptions=['pending','confirmed','processing','ready','out_for_delivery','delivered','cancelled'];
+const titleCase=s=>String(s||'').replaceAll('_',' ').replace(/\b\w/g,c=>c.toUpperCase());
+async function renderOrders(){
+ if(!cloud())return;
+ const tbody=$('orderRows'); if(!tbody)return;
+ $('ordersMessage').textContent='Loading orders…';
+ const {data:orders,error}=await window.OPQ_SUPABASE.from('orders').select('id,customer_name,phone,delivery_address,notes,status,payment_status,total_kes,created_at,order_items(product_name,quantity,size,unit_price_kes)').order('created_at',{ascending:false}).limit(100);
+ if(error){$('ordersMessage').textContent='Could not load orders: '+error.message;return}
+ $('orderCount').textContent=`(${orders.length})`;
+ tbody.innerHTML=orders.map(o=>{const items=(o.order_items||[]).map(i=>`${esc(i.product_name)}${i.size?' · '+esc(i.size):''} × ${i.quantity}`).join('<br>')||'—';return `<tr><td><b>${esc(String(o.id).slice(0,8).toUpperCase())}</b><br><small>${new Date(o.created_at).toLocaleString()}</small></td><td><b>${esc(o.customer_name)}</b><br><small>${esc(o.phone)}</small><br><small>${esc(o.delivery_address||'')}</small>${o.notes?`<br><small>Note: ${esc(o.notes)}</small>`:''}</td><td>${items}</td><td>${money(o.total_kes)}</td><td><select aria-label="Payment status" id="pay-${esc(o.id)}">${['unpaid','pending','paid','failed','refunded'].map(v=>`<option value="${v}" ${o.payment_status===v?'selected':''}>${titleCase(v)}</option>`).join('')}</select></td><td><select aria-label="Order status" id="status-${esc(o.id)}">${orderStatusOptions.map(v=>`<option value="${v}" ${o.status===v?'selected':''}>${titleCase(v)}</option>`).join('')}</select></td><td><button type="button" onclick="updateOrder('${esc(o.id)}')">Save</button></td></tr>`}).join('');
+ $('ordersMessage').textContent=orders.length?'Showing latest orders. Verify payment before marking an order as paid.':'No customer orders yet.';
+}
+async function updateOrder(id){
+ try{const status=$('status-'+id).value,payment_status=$('pay-'+id).value;const {error}=await window.OPQ_SUPABASE.from('orders').update({status,payment_status}).eq('id',id);if(error)throw error;$('ordersMessage').textContent='Order updated.';await renderOrders()}catch(e){$('ordersMessage').textContent='Could not update order: '+e.message}
+}
+$('refreshOrders')?.addEventListener('click',renderOrders);window.updateOrder=updateOrder;
 
 async function uploadImage(file){
   if(!file)return '';
