@@ -1,0 +1,22 @@
+OUTFITS WITH PEREZ & QHASUKHU — BRAND REFRESH PASS
+
+Included in this pass:
+- New scalable P/Q crown monogram logo (logo.svg) in navy, cream and gold.
+- Logo integrated into storefront header and footer.
+- Homepage headline and brand language broadened beyond churchwear.
+- Homepage and category tiles refreshed with fashion photography backgrounds.
+- Clear, high-contrast admin login and product submission button labels.
+- Cart button now explains that WhatsApp is used for payment coordination for now.
+- Existing Supabase URL, publishable key, client scripts, product and admin logic preserved.
+
+Important: this is a UI/brand refresh pass, not the complete production implementation.
+The following still need a separate implementation and live testing pass:
+- Customer checkout that creates order and order-item records visible in admin.
+- Reviews and ratings stored in the database with moderation/anti-spam controls.
+- Order-management area in the admin dashboard.
+- Secure server-side order validation and future Daraja M-Pesa integration.
+- Domain availability check, purchase and DNS connection.
+
+Do not rerun SETUP_NOW.sql or schema.sql against the existing live database without reviewing the migration first.
+Do not put a Supabase service-role key or M-Pesa secrets in browser-side files.
+The logo is an SVG and can be edited as vector artwork.

@@ -1,11 +1,11 @@
 const KEY='opq_products_v3';
 const seed=[
-{id:1,name:"Men's 3-Piece Suit",price:8500,category:"Official Wear",sizes:"S,M,L,XL,XXL",description:"A polished three-piece look for meetings, office days and formal occasions.",new:true,featured:true,image:"",available:true},
-{id:2,name:"Women's Church Dress",price:6500,category:"Church & Clergy",sizes:"8,10,12,14,16,18",description:"An elegant church dress with a refined silhouette and comfortable finish.",new:true,featured:true,image:"",available:true},
-{id:3,name:"Men's Classic Blazer",price:7000,category:"Official Wear",sizes:"S,M,L,XL,XXL",description:"A versatile tailored blazer for formal trousers or a smart shirt.",new:false,featured:true,image:"",available:true},
-{id:4,name:"Dress & Hat Set",price:7500,category:"Church & Clergy",sizes:"8,10,12,14,16,18",description:"A coordinated church set for a complete, graceful look.",new:true,featured:false,image:"",available:true},
-{id:5,name:"Men's Formal Shirt",price:2000,category:"Official Wear",sizes:"S,M,L,XL,XXL",description:"A crisp formal shirt for church, meetings and celebrations.",new:false,featured:false,image:"",available:true},
-{id:6,name:"Women's Tailored Blazer",price:5500,category:"Official Wear",sizes:"8,10,12,14,16,18",description:"A structured blazer that adds polish to dresses, skirts and trousers.",new:false,featured:false,image:"",available:true}
+{id:1,name:"Men's 3-Piece Suit",price:8500,category:"Men",sizes:"S,M,L,XL,XXL",description:"A polished three-piece look designed for Sunday service, formal gatherings and special occasions.",new:true,featured:true,image:"",available:true},
+{id:2,name:"Women's Church Dress",price:6500,category:"Women",sizes:"8,10,12,14,16,18",description:"An elegant church dress with a refined silhouette and comfortable finish.",new:true,featured:true,image:"",available:true},
+{id:3,name:"Men's Classic Blazer",price:7000,category:"Men",sizes:"S,M,L,XL,XXL",description:"A versatile tailored blazer that works beautifully with formal trousers or a smart shirt.",new:false,featured:true,image:"",available:true},
+{id:4,name:"Dress & Hat Set",price:7500,category:"Women",sizes:"8,10,12,14,16,18",description:"A coordinated Sunday set for a complete, graceful look.",new:true,featured:false,image:"",available:true},
+{id:5,name:"Men's Formal Shirt",price:2000,category:"Men",sizes:"S,M,L,XL,XXL",description:"A crisp formal shirt for church, meetings and celebrations.",new:false,featured:false,image:"",available:true},
+{id:6,name:"Women's Tailored Blazer",price:5500,category:"Women",sizes:"8,10,12,14,16,18",description:"A structured blazer that adds polish to dresses, skirts and trousers.",new:false,featured:false,image:"",available:true}
 ];
 function get(){let p=JSON.parse(localStorage.getItem(KEY)||'null');if(!Array.isArray(p)){p=seed;save(p)}return p}
 function save(p){localStorage.setItem(KEY,JSON.stringify(p))}
