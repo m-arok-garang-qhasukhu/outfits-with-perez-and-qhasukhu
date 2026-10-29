@@ -20,3 +20,10 @@ The following still need a separate implementation and live testing pass:
 Do not rerun SETUP_NOW.sql or schema.sql against the existing live database without reviewing the migration first.
 Do not put a Supabase service-role key or M-Pesa secrets in browser-side files.
 The logo is an SVG and can be edited as vector artwork.
+
+
+VERSION 10 HOTFIX
+- Fixed malformed inline click handlers: product UUIDs were wrapped in double quotes inside double-quoted HTML attributes, preventing Quick View/Add to bag actions from executing.
+- Quick View now compares product IDs as strings to support both numeric seed IDs and Supabase UUIDs.
+- Added a remove action for stale cart entries when a product is no longer in the catalogue.
+- This fixes code-level click-handler issues, but the deployed site must still be updated and tested in the browser.

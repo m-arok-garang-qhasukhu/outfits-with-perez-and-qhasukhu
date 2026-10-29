@@ -29,7 +29,7 @@ function render(){
  if(state.filter!=='All'&&state.filter!=='New')p=products().filter(x=>x.category===state.filter);
  if(state.search)p=p.filter(x=>(x.name+' '+x.category+' '+x.description).toLowerCase().includes(state.search.toLowerCase()));
  grid.innerHTML=p.map(x=>`<article class="product-card">
- <div class="product-image">${x.image?`<img src="${x.image}" alt="${x.name}">`:`<div class="placeholder">${x.category==='Men'?'M':'W'}</div>`}${x.new?'<span class="badge">NEW</span>':''}<button class="quick" onclick="quickView(${JSON.stringify(x.id)})">QUICK VIEW</button></div>
+ <div class="product-image">${x.image?`<img src="${x.image}" alt="${x.name}">`:`<div class="placeholder">${x.category==='Men'?'M':'W'}</div>`}${x.new?'<span class="badge">NEW</span>':''}<button class="quick" onclick='quickView(${JSON.stringify(String(x.id))})'>QUICK VIEW</button></div>
  <div class="product-info"><h3>${x.name}</h3><div class="product-meta"><span>${x.category}</span><span class="price">${money(x.price)}</span></div></div></article>`).join('');
  empty.hidden=!!p.length; renderCart();
 }
@@ -39,9 +39,9 @@ document.getElementById('searchInput').oninput=e=>{state.search=e.target.value;r
 document.getElementById('menuBtn').onclick=()=>document.getElementById('mainNav').classList.toggle('open');
 
 function quickView(id){
- const p=products().find(x=>x.id===id); if(!p)return;
+ const p=products().find(x=>String(x.id)===String(id)); if(!p)return;
  const sizes=(p.sizes||'').split(',').map(s=>s.trim()).filter(Boolean);selectedProductSize=sizes[0]||'';
- document.getElementById('productModal').innerHTML=`<button class="modal-close" onclick="closeModal()">×</button><div class="modal-photo">${p.image?`<img src="${p.image}" alt="${p.name}">`:`<div class="placeholder">P/Q</div>`}</div><div class="modal-copy"><p class="eyebrow">${p.category}${p.new?' • NEW':''}</p><h2>${p.name}</h2><h3>${money(p.price)}</h3><p>${p.description||'Beautifully tailored for your Sunday look.'}</p><strong style="font-size:10px;letter-spacing:.1em">SELECT SIZE</strong><div class="size-row">${sizes.map((s,i)=>`<button type="button" class="${i===0?'selected':''}" data-size="${s}" onclick="selectSize(this)">${s}</button>`).join('')}</div><div class="modal-actions"><button class="btn btn-dark" onclick="addSelectedToCart(${JSON.stringify(p.id)})">Add to bag</button><a class="btn" style="border:1px solid #ddd" target="_blank" href="https://wa.me/254799281744?text=${encodeURIComponent('Hello, I am interested in '+p.name+' at '+money(p.price)+'.')}">Ask on WhatsApp</a></div></div>`;
+ document.getElementById('productModal').innerHTML=`<button class="modal-close" onclick="closeModal()">×</button><div class="modal-photo">${p.image?`<img src="${p.image}" alt="${p.name}">`:`<div class="placeholder">P/Q</div>`}</div><div class="modal-copy"><p class="eyebrow">${p.category}${p.new?' • NEW':''}</p><h2>${p.name}</h2><h3>${money(p.price)}</h3><p>${p.description||'Beautifully tailored for your Sunday look.'}</p><strong style="font-size:10px;letter-spacing:.1em">SELECT SIZE</strong><div class="size-row">${sizes.map((s,i)=>`<button type="button" class="${i===0?'selected':''}" data-size="${s}" onclick="selectSize(this)">${s}</button>`).join('')}</div><div class="modal-actions"><button class="btn btn-dark" onclick='addSelectedToCart(${JSON.stringify(String(p.id))})'>Add to bag</button><a class="btn" style="border:1px solid #ddd" target="_blank" href="https://wa.me/254799281744?text=${encodeURIComponent('Hello, I am interested in '+p.name+' at '+money(p.price)+'.')}">Ask on WhatsApp</a></div></div>`;
  document.getElementById('modalBackdrop').hidden=false;
 }
 let selectedProductSize='';
@@ -54,9 +54,10 @@ function addCart(id,qty=1,size=''){id=String(id);const found=cart.find(x=>String
 function renderCart(){
  const wrap=document.getElementById('cartItems');let total=0,count=0;
  if(!cart.length){wrap.innerHTML='<div style="padding:35px 24px;color:#777;font-size:12px">Your bag is empty. Add a piece from the collection.</div>'}
- else wrap.innerHTML=cart.map(c=>{const p=products().find(x=>String(x.id)===String(c.id));if(!p)return '';total+=p.price*c.qty;count+=c.qty;return `<div class="cart-row"><div class="cart-thumb">${p.image?`<img src="${p.image}" alt="">`:''}</div><div><h4>${p.name}</h4><small>${money(p.price)} • ${p.category}${c.size?` • Size ${c.size}`:''}</small><div class="qty"><button onclick="changeQty(${JSON.stringify(p.id)},-1)">−</button><span>${c.qty}</span><button onclick="changeQty(${JSON.stringify(p.id)},1)">+</button></div></div><b>${money(p.price*c.qty)}</b></div>`}).join('');
+ else wrap.innerHTML=cart.map(c=>{const p=products().find(x=>String(x.id)===String(c.id));if(!p)return `<div class="cart-row"><div><strong>Item unavailable</strong><small>This item may have been removed from the catalogue.</small></div><button onclick='removeCartItem(${JSON.stringify(String(c.id))},${JSON.stringify(String(c.size||''))})'>Remove</button></div>`;total+=p.price*c.qty;count+=c.qty;return `<div class="cart-row"><div class="cart-thumb">${p.image?`<img src="${p.image}" alt="">`:''}</div><div><h4>${p.name}</h4><small>${money(p.price)} • ${p.category}${c.size?` • Size ${c.size}`:''}</small><div class="qty"><button onclick='changeQty(${JSON.stringify(String(p.id))},-1)'>−</button><span>${c.qty}</span><button onclick='changeQty(${JSON.stringify(String(p.id))},1)'>+</button></div></div><b>${money(p.price*c.qty)}</b></div>`}).join('');
  document.getElementById('cartTotal').textContent=money(total);document.getElementById('cartCount').textContent=count;
 }
+function removeCartItem(id,size=''){cart=cart.filter(c=>!(String(c.id)===String(id)&&String(c.size||'')===String(size||'')));localStorage.setItem(CART,JSON.stringify(cart));renderCart()}
 function changeQty(id,d){const x=cart.find(c=>String(c.id)===String(id));if(!x)return;x.qty+=d;if(x.qty<=0)cart=cart.filter(c=>String(c.id)!==String(id)||String(c.size||'')!==String(x.size||''));localStorage.setItem(CART,JSON.stringify(cart));renderCart()}
 function openCart(){document.getElementById('cartDrawer').classList.add('open');document.getElementById('drawerOverlay').hidden=false}
 function closeCart(){document.getElementById('cartDrawer').classList.remove('open');document.getElementById('drawerOverlay').hidden=true}
@@ -68,5 +69,5 @@ document.getElementById('whatsappOrder').onclick=()=>{
  const total=cart.reduce((s,c)=>{const p=products().find(x=>String(x.id)===String(c.id));return s+p.price*c.qty},0);
  window.open('https://wa.me/254799281744?text='+encodeURIComponent(`Hello Outfits with Perez & Qhasukhu 👋\nI'd like to order:\n${lines}\n\nEstimated total: ${money(total)}\nPlease confirm availability, sizing and delivery.`),'_blank');
 };
-window.quickView=quickView;window.closeModal=closeModal;window.addCart=addCart;window.changeQty=changeQty;window.selectSize=selectSize;window.addSelectedToCart=addSelectedToCart;
+window.quickView=quickView;window.closeModal=closeModal;window.addCart=addCart;window.changeQty=changeQty;window.selectSize=selectSize;window.addSelectedToCart=addSelectedToCart;window.removeCartItem=removeCartItem;
 (async()=>{await loadCatalog();render()})();
