@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>My Account & Order Tracking | Outfits with Perez & Qhasukhu</title><link rel="stylesheet" href="styles.css">
+<style>
+.account-wrap{max-width:980px;margin:48px auto;padding:0 5vw}.account-card{background:#fff;border:1px solid #e7e0d5;padding:26px;margin:20px 0}.account-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.account-field{display:flex;flex-direction:column;gap:6px;font-size:12px}.account-field input{padding:12px;border:1px solid #d8d0c5;font:inherit}.account-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:15px}.account-order{border:1px solid #e8e1d8;padding:18px;margin:14px 0}.order-top{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}.order-stage{font-weight:700;color:#9a773f}.order-items{font-size:13px;color:#666;line-height:1.8}.muted{color:#777;font-size:13px;line-height:1.6}.hidden{display:none!important}@media(max-width:650px){.account-grid{grid-template-columns:1fr}.account-wrap{margin:28px auto}}
+</style></head><body>
+<div class="announcement">YOUR ACCOUNT • PRIVATE ORDER TRACKING</div>
+<header class="site-header"><a class="brand" href="index.html"><img class="brand-logo" src="logo.svg" alt="P/Q logo"><span><strong>OUTFITS</strong><small>with Perez & Qhasukhu</small></span></a><nav><a href="index.html">Back to store</a></nav></header>
+<main class="account-wrap"><p class="eyebrow">OUTFITS WITH PEREZ & QHASUKHU</p><h1 style="font-family:'Playfair Display';font-weight:500">My account</h1>
+<section class="account-card" id="authCard"><h2 id="authHeading">Sign in to your account</h2><p class="muted">Create an account to place website orders and privately track their progress.</p>
+<form id="authForm"><div class="account-grid"><label class="account-field hidden" id="nameWrap">Full name<input id="fullName" autocomplete="name" maxlength="120"></label><label class="account-field">Email address<input id="email" type="email" required autocomplete="email"></label><label class="account-field">Password<input id="password" type="password" required minlength="8" autocomplete="current-password"></label></div>
+<div class="account-actions"><button class="btn btn-dark" id="authSubmit" type="submit">Sign in</button><button class="btn" id="toggleMode" type="button">Create an account</button></div><p id="authMessage" class="muted" role="status"></p></form></section>
+<section class="account-card hidden" id="ordersCard"><div class="order-top"><div><h2>Your orders</h2><p class="muted">Only orders placed under this signed-in account are shown here.</p></div><button class="btn" id="signOut">Sign out</button></div><p id="ordersMessage" class="muted" role="status"></p><div id="ordersList"></div></section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="supabase-config.js"></script><script src="supabase-client.js"></script><script src="account.js"></script></body></html>

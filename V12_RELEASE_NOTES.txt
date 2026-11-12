@@ -1,0 +1,30 @@
+OUTFITS WITH PEREZ & QHASUKHU — VERSION 12
+
+Built from the supplied V11 package while preserving its V10-derived storefront.
+
+Included:
+- Customer account page (account.html) with Supabase email/password registration and sign-in.
+- Checkout requires an authenticated customer and calls create_customer_order.
+- Orders are associated with auth.uid() in public.orders.user_id.
+- Customer portal lists only the signed-in customer's orders and line items.
+- Supabase RLS migration limits customer SELECT to their own orders/items; customers have no direct write policies.
+- Admin operational panels are hidden until the signed-in user is verified in public.admin_users.
+- Admin order updates open a prefilled WhatsApp message draft to the customer; admin must review and press Send.
+- Legacy orders remain user_id NULL and are not exposed to customers.
+- V10 storefront files and Quick View/cart behavior are retained.
+
+DEPLOYMENT:
+1. Back up the Supabase project/database.
+2. Confirm V11 migration has already been applied. This V12 migration assumes V11 created orders, order_items and create_store_order.
+3. Run V12_SECURE_TRACKING_MIGRATION.sql once in Supabase SQL Editor.
+4. Upload the contents of this folder to the ROOT of the existing GitHub repository, replacing matching files and adding account.html/account.js/V12 docs.
+5. Deploy via Vercel.
+6. Test with two ordinary customer accounts and the existing admin account.
+
+LIMITATIONS / REQUIRED LIVE TESTS:
+- This package has not been applied to the live Supabase project or deployed to Vercel.
+- WhatsApp stage messages are prefilled drafts opened by the admin; they are not automatically sent. Automated sending needs an approved WhatsApp Business provider/API and server-side secrets.
+- Email confirmation settings may require customers to confirm their email before first sign-in.
+- Existing historical orders are deliberately not assigned to users.
+- Review submission and moderation UI remains a later feature; V11 only supplied the moderated review database foundation.
+- No M-Pesa API integration is included.

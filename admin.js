@@ -39,7 +39,7 @@ async function render(){
   const p=await getProducts();$('count').textContent=`(${p.length})`;
   $('rows').innerHTML=p.map(x=>`<tr><td>${x.image?`<img class="admin-thumb" src="${esc(x.image)}" alt="">`:'—'}</td><td><b>${esc(x.name)}</b><br><small>${x.new?'New • ':''}${esc(x.sizes||'Custom sizing')}</small></td><td>${esc(x.category)}</td><td>${money(x.price)}</td><td><span class="status ${x.available!==false?'available':'unavailable'}">${x.available!==false?'Available':'Unavailable'}</span></td><td><div class="actions"><button onclick="edit('${String(x.id)}')">Edit</button><button class="danger" onclick="removeProduct('${String(x.id)}')">Delete</button></div></td></tr>`).join(''); await renderOrders()}
 
-const orderStatusOptions=['pending','confirmed','processing','ready','out_for_delivery','delivered','cancelled'];
+const orderStatusOptions=['pending','confirmed','awaiting_payment','in_progress','processing','ready','out_for_delivery','delivered','cancelled'];
 const titleCase=s=>String(s||'').replaceAll('_',' ').replace(/\b\w/g,c=>c.toUpperCase());
 async function renderOrders(){
  if(!cloud())return;
@@ -52,7 +52,20 @@ async function renderOrders(){
  $('ordersMessage').textContent=orders.length?'Showing latest orders. Verify payment before marking an order as paid.':'No customer orders yet.';
 }
 async function updateOrder(id){
- try{const status=$('status-'+id).value,payment_status=$('pay-'+id).value;const {error}=await window.OPQ_SUPABASE.from('orders').update({status,payment_status}).eq('id',id);if(error)throw error;$('ordersMessage').textContent='Order updated.';await renderOrders()}catch(e){$('ordersMessage').textContent='Could not update order: '+e.message}
+ try{
+  const status=$('status-'+id).value,payment_status=$('pay-'+id).value;
+  const {data:before}=await window.OPQ_SUPABASE.from('orders').select('customer_name,phone').eq('id',id).maybeSingle();
+  const {error}=await window.OPQ_SUPABASE.from('orders').update({status,payment_status}).eq('id',id);if(error)throw error;
+  $('ordersMessage').textContent='Order updated. Preparing a WhatsApp status message…';
+  await renderOrders();
+  if(before?.phone){
+   const stage=titleCase(status),ref=String(id).slice(0,8).toUpperCase();
+   const body=`Hello ${before.customer_name}, an update from Outfits with Perez & Qhasukhu: your order #${ref} is now ${stage}. Payment status: ${titleCase(payment_status)}. You can track your order at ${location.origin}/account.html`;
+   const phone=String(before.phone).replace(/[^0-9]/g,'').replace(/^0/,'254');
+   window.open(`https://wa.me/${phone}?text=${encodeURIComponent(body)}`,'_blank','noopener');
+   $('ordersMessage').textContent='Order updated. A WhatsApp message draft has opened; review and send it to the customer.';
+  }
+ }catch(e){$('ordersMessage').textContent='Could not update order: '+e.message}
 }
 $('refreshOrders')?.addEventListener('click',renderOrders);window.updateOrder=updateOrder;
 
@@ -91,6 +104,7 @@ $('cancelBtn').onclick=reset;
 window.edit=edit;window.removeProduct=removeProduct;
 
 async function init(){
+  document.querySelectorAll('.admin-protected').forEach(el=>el.style.display='none');
   $('productForm').style.opacity='.45';
   $('productForm').style.pointerEvents='none';
   [...$('productForm').querySelectorAll('input,select,textarea,button')].forEach(el=>el.disabled=true);
@@ -104,9 +118,9 @@ async function init(){
     $('modeNote').innerHTML='<b>Cloud mode:</b> Supabase is configured. Sign in with the admin account you created for this store.';
     $('loginPanel').style.display='block';
     const ok=await isAdmin();
-    if(ok){$('loginPanel').style.display='none';$('authStatus').textContent=session?.user?.email||'Admin';$('logoutBtn').style.display='inline';$('productForm').style.opacity='1';$('productForm').style.pointerEvents='auto';[...$('productForm').querySelectorAll('input,select,textarea,button')].forEach(el=>el.disabled=false);await render()}
+    if(ok){document.querySelectorAll('.admin-protected').forEach(el=>el.style.display='block');$('loginPanel').style.display='none';$('authStatus').textContent=session?.user?.email||'Admin';$('logoutBtn').style.display='inline';$('productForm').style.opacity='1';$('productForm').style.pointerEvents='auto';[...$('productForm').querySelectorAll('input,select,textarea,button')].forEach(el=>el.disabled=false);await render()}
     else {$('authStatus').textContent='Admin sign-in required';$('productForm').style.opacity='.45';$('productForm').style.pointerEvents='none';}
-    window.OPQ_SUPABASE.auth.onAuthStateChange(async (_event,s)=>{session=s;const ok=await isAdmin();$('loginPanel').style.display=ok?'none':'block';$('productForm').style.opacity=ok?'1':'.45';$('productForm').style.pointerEvents=ok?'auto':'none';[...$('productForm').querySelectorAll('input,select,textarea,button')].forEach(el=>el.disabled=!ok);$('logoutBtn').style.display=ok?'inline':'none';$('authStatus').textContent=ok?(s?.user?.email||'Admin'):'Admin sign-in required';if(ok)await render()});
+    window.OPQ_SUPABASE.auth.onAuthStateChange(async (_event,s)=>{session=s;const ok=await isAdmin();document.querySelectorAll('.admin-protected').forEach(el=>el.style.display=ok?'block':'none');$('loginPanel').style.display=ok?'none':'block';$('productForm').style.opacity=ok?'1':'.45';$('productForm').style.pointerEvents=ok?'auto':'none';[...$('productForm').querySelectorAll('input,select,textarea,button')].forEach(el=>el.disabled=!ok);$('logoutBtn').style.display=ok?'inline':'none';$('authStatus').textContent=ok?(s?.user?.email||'Admin'):'Admin sign-in required';if(ok)await render()});
   } else await render();
 }
 $('loginForm').onsubmit=async e=>{e.preventDefault();if(!cloud()){ $('loginMsg').textContent='Cloud connection unavailable. Please contact the site administrator.'; return; } const {error}=await window.OPQ_SUPABASE.auth.signInWithPassword({email:$('loginEmail').value.trim(),password:$('loginPassword').value});$('loginMsg').textContent=error?error.message:'Signed in. Checking admin access…'};

@@ -64,9 +64,11 @@ function closeCart(){document.getElementById('cartDrawer').classList.remove('ope
 document.getElementById('cartBtn').onclick=openCart;document.getElementById('closeCart').onclick=closeCart;document.getElementById('drawerOverlay').onclick=closeCart;
 document.getElementById('clearCart').onclick=()=>{cart=[];localStorage.setItem(CART,'[]');renderCart()};
 const checkoutForm=document.getElementById('checkoutForm');
-document.getElementById('checkoutStart').onclick=()=>{
+document.getElementById('checkoutStart').onclick=async()=>{
  if(!cart.length){alert('Your bag is empty.');return;}
  if(!window.OPQ_CLOUD?.ready||!window.OPQ_SUPABASE){alert('Online order submission is not configured yet. Please contact us on WhatsApp while the store setup is completed.');return;}
+ const {data:{session}}=await window.OPQ_SUPABASE.auth.getSession();
+ if(!session){window.location.href='account.html?return=checkout';return;}
  checkoutForm.hidden=false;document.getElementById('checkoutStart').hidden=true;document.getElementById('checkoutMessage').textContent='';
 };
 document.getElementById('checkoutCancel').onclick=()=>{checkoutForm.hidden=true;document.getElementById('checkoutStart').hidden=false};
@@ -77,16 +79,16 @@ checkoutForm.onsubmit=async e=>{
  btn.disabled=true;btn.textContent='Submitting order…';msg.textContent='';
  try{
    const payload={p_customer_name:document.getElementById('checkoutName').value.trim(),p_phone:document.getElementById('checkoutPhone').value.trim(),p_delivery_address:document.getElementById('checkoutAddress').value.trim(),p_notes:document.getElementById('checkoutNotes').value.trim(),p_items:items};
-   const {data,error}=await window.OPQ_SUPABASE.rpc('create_store_order',payload); if(error)throw error;
+   const {data,error}=await window.OPQ_SUPABASE.rpc('create_customer_order',payload); if(error)throw error;
    const orderId=typeof data==='string'?data:(data?.order_id||data?.id||data?.[0]?.order_id);
    if(!orderId)throw new Error('The order may have been received, but no order reference was returned. Please contact us before submitting again.');
    const orderRef=String(orderId).slice(0,8).toUpperCase();
    const msgText=`Hello Outfits with Perez & Qhasukhu 👋\nI submitted website order #${orderRef}. Please confirm payment instructions and delivery.\nName: ${payload.p_customer_name}\nPhone: ${payload.p_phone}`;
    cart=[];localStorage.setItem(CART,'[]');renderCart();checkoutForm.reset();checkoutForm.hidden=true;document.getElementById('checkoutStart').hidden=false;
-   msg.textContent='';alert(`Order submitted successfully! Reference: ${orderRef}. We will now open WhatsApp so you can coordinate payment.`);
+   msg.textContent='';alert(`Order submitted successfully! Reference: ${orderRef}. You can track its progress in My account. We will now open WhatsApp so you can coordinate payment.`);
    closeCart();window.open('https://wa.me/254799281744?text='+encodeURIComponent(msgText),'_blank');
  }catch(err){console.error(err);msg.textContent='Order was not submitted: '+(err.message||'Please try again or contact us on WhatsApp.');}
  finally{btn.disabled=false;btn.textContent='Submit order';}
 };
 window.quickView=quickView;window.closeModal=closeModal;window.addCart=addCart;window.changeQty=changeQty;window.selectSize=selectSize;window.addSelectedToCart=addSelectedToCart;window.removeCartItem=removeCartItem;
-(async()=>{await loadCatalog();render()})();
+(async()=>{await loadCatalog();render();if(new URLSearchParams(location.search).get('checkout')==='1'){openCart();document.getElementById('checkoutStart').click()}})();
