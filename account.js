@@ -5,6 +5,8 @@ const labels={pending:'Pending review',confirmed:'Confirmed',awaiting_payment:'A
 const money=n=>'KSh '+Number(n||0).toLocaleString('en-KE');
 function setMode(next){mode=next;$('authHeading').textContent=mode==='signup'?'Create your account':'Sign in to your account';$('authSubmit').textContent=mode==='signup'?'Create account':'Sign in';$('toggleMode').textContent=mode==='signup'?'I already have an account':'Create an account';$('nameWrap').classList.toggle('hidden',mode!=='signup');$('password').autocomplete=mode==='signup'?'new-password':'current-password';}
 $('toggleMode').onclick=()=>setMode(mode==='signin'?'signup':'signin');
+// Customer-only password visibility control. The admin sign-in form is intentionally unchanged.
+$('togglePasswordVisibility').onclick=()=>{const field=$('password'),button=$('togglePasswordVisibility');const reveal=field.type==='password';field.type=reveal?'text':'password';button.setAttribute('aria-pressed',String(reveal));button.setAttribute('aria-label',reveal?'Hide password':'Show password');button.title=reveal?'Hide password':'Show password';button.textContent=reveal?'🙈':'👁️';};
 $('authForm').onsubmit=async e=>{e.preventDefault();const db=supa();if(!db){$('authMessage').textContent='The store connection is unavailable. Please try again later.';return}
  const email=$('email').value.trim(),password=$('password').value;
  $('authSubmit').disabled=true;$('authMessage').textContent='Please wait…';
