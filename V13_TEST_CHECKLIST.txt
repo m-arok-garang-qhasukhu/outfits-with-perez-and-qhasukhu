@@ -1,0 +1,40 @@
+P&Q V13 TEST CHECKLIST
+
+Pre-deployment
+[ ] Confirm V12 is already applied; back up Supabase.
+[ ] Apply V13_MIGRATION.sql once; inspect any SQL error rather than retrying blindly.
+[ ] Confirm tailoring-references bucket is private.
+[ ] Confirm customer policies only expose their own orders, tailoring requests and private reference files.
+[ ] Confirm admin_users membership and admin RLS policies.
+
+Customer account A
+[ ] Sign in and place a normal website order.
+[ ] Confirm country is recorded with delivery address.
+[ ] Confirm the order appears only in account A.
+[ ] Submit a tailoring request with and without a reference image.
+[ ] Confirm reference code and request status appear in the account.
+[ ] Request cancellation on a pending/confirmed/awaiting-payment order.
+[ ] Withdraw a pending cancellation request.
+[ ] Confirm cancellation cannot be requested online after progress stages begin.
+[ ] Mark a test order delivered as admin; submit one verified review.
+[ ] Confirm duplicate review for the same order item is rejected.
+
+Customer account B
+[ ] Confirm account B cannot read account A orders, tailoring requests or private image files.
+[ ] Confirm account B cannot update order status, payment status or cancellation decisions.
+[ ] Confirm account B cannot submit a review for account A's order item.
+
+Admin
+[ ] Sign in with authorized admin account; dashboard appears.
+[ ] Sign out; protected panels are hidden and direct database access is denied.
+[ ] Add, edit, upload and delete a test product.
+[ ] Update a tailoring request stage, deposit status and admin note.
+[ ] Approve/reject a cancellation request; verify payment status remains unchanged.
+[ ] Approve/unpublish a review and verify only approved reviews appear publicly.
+
+Storefront regression
+[ ] Quick View works.
+[ ] Add to Bag, size selection, quantity changes and cart total work.
+[ ] Checkout requires sign-in and submits successfully.
+[ ] FAQ helper answers supported questions and routes unmatched questions to WhatsApp.
+[ ] Mobile navigation and responsive layouts work.

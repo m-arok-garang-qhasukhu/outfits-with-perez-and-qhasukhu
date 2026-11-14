@@ -78,7 +78,7 @@ checkoutForm.onsubmit=async e=>{
  const items=cart.map(c=>({product_id:String(c.id),quantity:Number(c.qty),size:String(c.size||'')}));
  btn.disabled=true;btn.textContent='Submitting order…';msg.textContent='';
  try{
-   const payload={p_customer_name:document.getElementById('checkoutName').value.trim(),p_phone:document.getElementById('checkoutPhone').value.trim(),p_delivery_address:document.getElementById('checkoutAddress').value.trim(),p_notes:document.getElementById('checkoutNotes').value.trim(),p_items:items};
+   const payload={p_customer_name:document.getElementById('checkoutName').value.trim(),p_phone:document.getElementById('checkoutPhone').value.trim(),p_delivery_address:document.getElementById('checkoutCountry').value+' — '+document.getElementById('checkoutAddress').value.trim(),p_notes:document.getElementById('checkoutNotes').value.trim(),p_items:items};
    const {data,error}=await window.OPQ_SUPABASE.rpc('create_customer_order',payload); if(error)throw error;
    const orderId=typeof data==='string'?data:(data?.order_id||data?.id||data?.[0]?.order_id);
    if(!orderId)throw new Error('The order may have been received, but no order reference was returned. Please contact us before submitting again.');
@@ -91,4 +91,14 @@ checkoutForm.onsubmit=async e=>{
  finally{btn.disabled=false;btn.textContent='Submit order';}
 };
 window.quickView=quickView;window.closeModal=closeModal;window.addCart=addCart;window.changeQty=changeQty;window.selectSize=selectSize;window.addSelectedToCart=addSelectedToCart;window.removeCartItem=removeCartItem;
-(async()=>{await loadCatalog();render();if(new URLSearchParams(location.search).get('checkout')==='1'){openCart();document.getElementById('checkoutStart').click()}})();
+const faqAnswers=[
+ {keys:['deposit','30%','70%','payment'],answer:'Custom tailoring uses a 30% deposit and 70% balance after the quotation is agreed. Payment is coordinated manually through WhatsApp for now; automated M-Pesa checkout is not yet available.'},
+ {keys:['track','tracking','order status','where is my order'],answer:'Sign in to My Account to view orders placed under your account and their current progress.'},
+ {keys:['tailor','custom','measure','measurement'],answer:'Submit a custom tailoring request from My Account. Add your garment type, fabric, colour, style, measurements and optional reference image. Our team will review it before confirming the quotation and timing.'},
+ {keys:['delivery','deliver','country','uganda','south sudan','rwanda','burundi','tanzania'],answer:'We welcome enquiries from Kenya, Uganda, South Sudan, Rwanda, Burundi and Tanzania. Delivery options, cost and timing are confirmed individually before an order is accepted.'},
+ {keys:['cancel','cancellation','refund'],answer:'Eligible orders can request cancellation in My Account. The team reviews the request; approval does not automatically mean a refund or deposit return.'},
+ {keys:['wrong size','wrong measurement','incorrect measurement','fit'],answer:'Contact our team promptly on WhatsApp so we can review the garment stage and discuss available options. Adjustments may affect timing or cost.'}
+];
+document.getElementById('faqAsk')?.addEventListener('click',()=>{const q=document.getElementById('faqQuestion').value.trim().toLowerCase();const hit=faqAnswers.find(x=>x.keys.some(k=>q.includes(k)));document.getElementById('faqAnswer').textContent=q?(hit?hit.answer:'I could not confidently answer that. Please contact our team on WhatsApp at +254 799 281 744 and we will help.'): 'Please type a question first.';});
+async function loadPublicReviews(){const box=document.getElementById('publicReviews');if(!box||!window.OPQ_CLOUD?.ready||!window.OPQ_SUPABASE)return;const {data,error}=await window.OPQ_SUPABASE.from('product_reviews').select('reviewer_name,rating,review_text,products(name)').eq('is_approved',true).order('created_at',{ascending:false}).limit(6);if(error||!data?.length)return;box.innerHTML=data.map(r=>`<article class="review-card"><div class="review-stars" aria-label="${r.rating} out of 5 stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div><p>“${String(r.review_text).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}”</p><b>${String(r.reviewer_name).replace(/[&<>"']/g,'')}</b><small>Verified customer · ${String(r.products?.name||'P&Q purchase').replace(/[&<>"']/g,'')}</small></article>`).join('');}
+(async()=>{await loadCatalog();render();await loadPublicReviews();if(new URLSearchParams(location.search).get('checkout')==='1'){openCart();document.getElementById('checkoutStart').click()}})();

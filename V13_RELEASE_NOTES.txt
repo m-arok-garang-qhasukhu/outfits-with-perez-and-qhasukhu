@@ -1,0 +1,37 @@
+OUTFITS WITH PEREZ & QHASUKHU — VERSION 13 (PRE-DEPLOYMENT BUILD)
+
+Built from the supplied V12.1 ZIP. Existing V12.1 storefront, cart, Quick View, authenticated checkout, customer order listing and admin product management were retained.
+
+V13 additions in this package:
+- Refreshed editorial homepage copy and premium navy / champagne / ivory styling.
+- Horizontal P&Q wordmark SVG alongside the existing monogram.
+- Regional enquiry messaging for Kenya, Uganda, South Sudan, Rwanda, Burundi and Tanzania. Delivery is confirmed individually; no unsupported delivery promise is made.
+- Checkout country selector; selected country is recorded as part of the delivery-address text because the existing orders schema has no dedicated country column.
+- On-site custom tailoring request form in the signed-in customer account, including garment, fabric, colour, design, measurements, optional private image, special instructions, desired date and country.
+- Tailoring request references, customer tracking, admin progress updates and 30% / 70% deposit-balance tracking fields.
+- Customer cancellation request and withdrawal workflow for pending, confirmed and awaiting-payment orders. Admin decision panel; approving sets order status to cancelled but does not change payment/refund status.
+- Verified-purchase reviews: only signed-in owners of delivered order items can submit; one review per order item; reviews require admin moderation.
+- Programmed FAQ helper for tailoring, payment, delivery, tracking, cancellation and measurement queries; unmatched questions route to WhatsApp.
+
+DATABASE:
+- V13_MIGRATION.sql is a new migration and must be applied once, after the V12 migration already installed on the live project.
+- It adds cancellation columns, verified review fields, tailoring_requests, narrowly scoped RPC functions and a private tailoring-references Storage bucket.
+- It does not rewrite historical order ownership or modify existing order totals.
+- Do not run schema.sql, V11 migration or V12 migration again as part of V13.
+
+IMPORTANT LIMITATIONS / LIVE VERIFICATION:
+- This package has passed JavaScript syntax checks and static source checks only. It has NOT been run against the live Supabase project or deployed to Vercel.
+- Before applying V13_MIGRATION.sql, back up the database and verify the V11 product_reviews table and V12 orders/order_items schema are present.
+- Delivery coverage, costs and times outside Kenya remain subject to confirmation per order.
+- WhatsApp messages are not automatically sent. WhatsApp is a manual support/payment-coordination channel.
+- Automated M-Pesa is not included.
+- The tailoring reference image is stored privately; customers and authorized admins are permitted by storage policies to read it. Admin image-preview links are not yet surfaced in the dashboard.
+- Customer review photos are not included in this build; text and star ratings are supported.
+- Customer cancellation requests are not automatic cancellations. Admin review is required; deposit refunds are separate.
+- Admin page visibility is not the security boundary: Supabase RLS and admin_users membership remain essential. Verify the live RLS policies before deployment.
+
+DEPLOYMENT OVERVIEW:
+1. Back up Supabase.
+2. Apply V13_MIGRATION.sql once in the Supabase SQL editor.
+3. Deploy the contents of this ZIP to the root of the existing GitHub repository and deploy through Vercel.
+4. Test using two ordinary customer accounts and the existing admin account before announcing the release.
