@@ -13,7 +13,7 @@ $('authForm').onsubmit=async e=>{e.preventDefault();const db=supa();if(!db){$('a
  try{
   if(mode==='signup'){
    const name=$('fullName').value.trim();if(name.length<2)throw new Error('Please enter your full name.');
-   const {data,error}=await db.auth.signUp({email,password,options:{data:{full_name:name}}});if(error)throw error;
+   const redirectTo=new URL('account.html',location.href);redirectTo.searchParams.set('auth','confirmed');const {data,error}=await db.auth.signUp({email,password,options:{data:{full_name:name},emailRedirectTo:redirectTo.toString()}});if(error)throw error;
    if(data.session){const p=new URLSearchParams(location.search);if(p.get('return')==='checkout'){location.href='index.html?checkout=1';return}$('authMessage').textContent='Account created. Loading your orders…';await loadAccount()}
    else $('authMessage').textContent='Account created. Check your email to confirm your address, then sign in.';
   }else{
@@ -41,7 +41,7 @@ $('signOut').onclick=async()=>{const db=supa();if(db)await db.auth.signOut();$('
 (async()=>{const db=supa();if(!db){$('authMessage').textContent='Store connection unavailable. Please contact the store.';return}
  await loadAccount();
  db.auth.onAuthStateChange((_event,session)=>{if(session)setTimeout(()=>loadAccount(),0);else{$('ordersCard').classList.add('hidden');$('authCard').classList.remove('hidden')}});
- const params=new URLSearchParams(location.search);if(params.get('return')==='checkout')$('authMessage').textContent='Sign in or create an account to continue checkout. After signing in, return to your bag and submit your order.';
+ const params=new URLSearchParams(location.search);if(params.get('auth')==='confirmed'){const {data:{session:confirmedSession}}=await db.auth.getSession();if(confirmedSession){$('ordersMessage').textContent='Email confirmed successfully. Your account is ready.';}else{$('authMessage').textContent='Your email has been confirmed. Please sign in to continue.';}}if(params.get('return')==='checkout')$('authMessage').textContent='Sign in or create an account to continue checkout. After signing in, return to your bag and submit your order.';
 })();
 
 const statusText={submitted:'Submitted',under_review:'Under review',awaiting_measurements:'Awaiting measurements',quoted:'Quoted',approved:'Approved',deposit_pending:'Deposit pending',in_progress:'In progress',ready:'Ready',completed:'Completed',declined:'Declined'};
