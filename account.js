@@ -28,6 +28,7 @@ async function loadAccount(){
  const db=supa();if(!db)return;
  const {data:{session},error:sessionError}=await db.auth.getSession();if(sessionError)throw sessionError;
  if(!session){$('authCard').classList.remove('hidden');$('ordersCard').classList.add('hidden');return}
+ const savedName=session.user.user_metadata?.full_name||session.user.user_metadata?.name||'';if($('tailorCustomerName')&&!$('tailorCustomerName').value)$('tailorCustomerName').value=savedName;
  $('authCard').classList.add('hidden');$('ordersCard').classList.remove('hidden');$('ordersMessage').textContent='Loading your orders…';
  const {data:orders,error}=await db.from('orders').select('id,customer_name,status,payment_status,total_kes,created_at,cancellation_status,cancellation_admin_note,order_items(id,product_id,product_name,quantity,size,unit_price_kes)').order('created_at',{ascending:false}).limit(100);
  if(error){$('ordersMessage').textContent='Could not load your orders: '+error.message;return}
