@@ -22,7 +22,7 @@
 <label class="account-field" style="grid-column:1/-1">Style and design preferences<textarea id="tailorStyle" rows="3" maxlength="2000"></textarea></label>
 <label class="account-field" style="grid-column:1/-1">Measurements<textarea id="tailorMeasurements" rows="3" maxlength="4000" placeholder="Add measurements you already have, or say you need guidance"></textarea></label>
 <label class="account-field" style="grid-column:1/-1">Special instructions<textarea id="tailorNotes" rows="3" maxlength="2000"></textarea></label>
-</div><div class="account-actions"><button class="btn btn-dark" id="tailorSubmit" type="submit">Submit tailoring request</button></div><p id="tailorMessage" class="muted" role="status"></p></form><h3>Your tailoring requests</h3><div id="tailoringList" class="muted">Loading…</div></section>
+</div><div class="account-actions"><button class="btn btn-dark" id="tailorSubmit" type="submit">Submit tailoring request</button><button class="btn hidden" id="tailorCancelEdit" type="button" onclick="cancelTailoringEdit()">Cancel editing</button><button class="btn hidden" id="tailorRemoveImage" type="button" onclick="removeTailoringImage()">Remove current image</button></div><p id="tailorImageStatus" class="muted" role="status"></p><p id="tailorMessage" class="muted" role="status"></p></form><h3>Your tailoring requests</h3><div id="tailoringList" class="muted">Loading…</div></section>
 </section>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="supabase-config.js"></script><script src="supabase-client.js"></script><script src="account.js"></script></body></html>
