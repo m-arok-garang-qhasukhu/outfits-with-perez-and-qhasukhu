@@ -104,20 +104,30 @@ $('cancelBtn').onclick=reset;
 window.edit=edit;window.removeProduct=removeProduct;
 
 const tailoringStages=['submitted','under_review','awaiting_measurements','quoted','approved','deposit_pending','in_progress','ready','completed','declined'];
+let tailoringObjectUrls=[];
 async function renderTailoring(){
  if(!cloud()||!$('tailoringRows'))return;
+ tailoringObjectUrls.forEach(url=>URL.revokeObjectURL(url));
+ tailoringObjectUrls=[];
  const {data,error}=await window.OPQ_SUPABASE.from('tailoring_requests').select('*').order('created_at',{ascending:false}).limit(100);
  if(error){$('tailoringAdminMessage').textContent=error.message;return;}
  const html=await Promise.all(data.map(async r=>{
   let preview='';
   if(r.reference_image_url){
-   const {data:signed,error:e}=await window.OPQ_SUPABASE.storage.from('tailoring-references').createSignedUrl(r.reference_image_url,3600);
-   preview=!e&&signed?.signedUrl?'<br><a target="_blank" rel="noopener" href="'+esc(signed.signedUrl)+'"><img class="admin-thumb" src="'+esc(signed.signedUrl)+'" alt="Private customer reference"></a><br><small>Preview link expires in 1 hour</small>':'<br><small>Private image saved; preview unavailable</small>';
+   const {data:file,error:e}=await window.OPQ_SUPABASE.storage.from('tailoring-references').download(r.reference_image_url);
+   if(!e&&file){
+    const localUrl=URL.createObjectURL(file);
+    tailoringObjectUrls.push(localUrl);
+    preview='<br><a target="_blank" rel="noopener" href="'+esc(localUrl)+'"><img class="admin-thumb" src="'+esc(localUrl)+'" alt="Private customer reference"></a><br><small>Private reference image · available whenever the admin dashboard is open</small>';
+   }else{
+    console.warn('Could not load private tailoring reference image:',e);
+    preview='<br><small>Private image saved; preview could not be loaded. Check storage access.</small>';
+   }
   }
   return '<tr><td><b>'+esc(r.reference_code)+'</b><br><small>'+new Date(r.created_at).toLocaleString()+'</small></td><td><b>'+esc(r.customer_name||'Name not supplied')+'</b><br><small>'+esc(r.customer_email||'Email unavailable')+'</small><br><small>'+esc(r.customer_phone||'Phone unavailable')+'</small><br><small>'+esc(r.country)+'</small></td><td><b>'+esc(r.garment_type)+'</b><br><small>'+esc(r.fabric)+' · '+esc(r.colour)+'</small><br><small>'+esc(r.style_preferences)+'</small>'+preview+'<br><small>'+esc(r.measurements)+'</small><br><small>'+esc(r.special_instructions)+'</small></td><td><select id="tailor-status-'+r.id+'">'+tailoringStages.map(x=>'<option value="'+x+'" '+(x===r.status?'selected':'')+'>'+titleCase(x)+'</option>').join('')+'</select></td><td><select id="tailor-deposit-'+r.id+'">'+['unpaid','pending','paid'].map(x=>'<option value="'+x+'" '+(x===r.deposit_status?'selected':'')+'>'+titleCase(x)+'</option>').join('')+'</select><br><small>30% / 70%</small></td><td><textarea id="tailor-note-'+r.id+'" rows="2">'+esc(r.admin_note||'')+'</textarea></td><td><button onclick="saveTailoring(\''+r.id+'\')">Save</button></td></tr>';
  }));
  $('tailoringRows').innerHTML=html.join('');
- $('tailoringAdminMessage').textContent=data.length+' request(s). Private previews expire after one hour.';
+ $('tailoringAdminMessage').textContent=data.length+' request(s). Private images are loaded securely when the dashboard opens; no one-hour preview link is used.';
 }
 window.saveTailoring=async id=>{try{const {error}=await window.OPQ_SUPABASE.from('tailoring_requests').update({status:$('tailor-status-'+id).value,deposit_status:$('tailor-deposit-'+id).value,admin_note:$('tailor-note-'+id).value.trim()}).eq('id',id);if(error)throw error;$('tailoringAdminMessage').textContent='Tailoring request updated.';}catch(e){$('tailoringAdminMessage').textContent='Could not update: '+e.message}};
 async function renderCancellations(){if(!cloud()||!$('cancellationRows'))return;const {data,error}=await window.OPQ_SUPABASE.from('orders').select('id,customer_name,phone,status,cancellation_status,cancellation_reason,cancellation_admin_note').neq('cancellation_status','none').order('cancellation_requested_at',{ascending:false}).limit(100);if(error){$('cancellationAdminMessage').textContent=error.message;return;} $('cancellationRows').innerHTML=data.map(o=>`<tr><td>${String(o.id).slice(0,8).toUpperCase()}</td><td>${esc(o.customer_name)}<br><small>${esc(o.phone)}</small></td><td>${esc(o.cancellation_reason||'—')}</td><td><select id="cancel-status-${o.id}">${['requested','approved','rejected','withdrawn'].map(x=>`<option value="${x}" ${x===o.cancellation_status?'selected':''}>${titleCase(x)}</option>`).join('')}</select></td><td><textarea id="cancel-note-${o.id}" rows="2">${esc(o.cancellation_admin_note||'')}</textarea></td><td><button onclick="saveCancellation('${o.id}')">Save</button></td></tr>`).join('');$('cancellationAdminMessage').textContent=`${data.length} cancellation record(s).`}
