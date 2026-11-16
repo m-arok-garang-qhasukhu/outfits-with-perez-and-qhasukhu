@@ -46,24 +46,47 @@ $('signOut').onclick=async()=>{const db=supa();if(db)await db.auth.signOut();$('
 })();
 
 const statusText={submitted:'Submitted',under_review:'Under review',awaiting_measurements:'Awaiting measurements',quoted:'Quoted',approved:'Approved',deposit_pending:'Deposit pending',in_progress:'In progress',ready:'Ready',completed:'Completed',declined:'Declined'};
+let editingTailoringId=null, existingReferenceImage='', removeExistingImage=false;
+function resetTailoringEditor(){editingTailoringId=null;existingReferenceImage='';removeExistingImage=false;$('tailoringForm').reset();$('tailorSubmit').textContent='Submit tailoring request';$('tailorCancelEdit')?.classList.add('hidden');$('tailorRemoveImage')?.classList.add('hidden');$('tailorImageStatus').textContent='';}
+window.cancelTailoringEdit=()=>{resetTailoringEditor();$('tailorMessage').textContent='Editing cancelled.';};
+window.editTailoringRequest=async id=>{
+ const db=supa();if(!db)return;$('tailorMessage').textContent='Loading request…';
+ try{const {data:r,error}=await db.from('tailoring_requests').select('*').eq('id',id).single();if(error)throw error;
+ if(!['submitted','under_review','awaiting_measurements'].includes(r.status))throw new Error('This request has progressed too far for online editing. Please contact the store.');
+ editingTailoringId=r.id;existingReferenceImage=r.reference_image_url||'';removeExistingImage=false;
+ $('tailorGarment').value=r.garment_type||'';$('tailorCountry').value=r.country||'Kenya';$('tailorFabric').value=r.fabric||'';$('tailorColour').value=r.colour||'';$('tailorDate').value=r.desired_completion_date||'';$('tailorStyle').value=r.style_preferences||'';$('tailorMeasurements').value=r.measurements||'';$('tailorNotes').value=r.special_instructions||'';$('tailorCustomerName').value=r.customer_name||'';$('tailorCustomerPhone').value=r.customer_phone||'';$('tailorImage').value='';
+ $('tailorImageStatus').textContent=existingReferenceImage?'A private reference image is attached. You can keep it, replace it, or remove it.':'No reference image attached.';
+ $('tailorSubmit').textContent='Save corrections';$('tailorCancelEdit').classList.remove('hidden');$('tailorRemoveImage').classList.toggle('hidden',!existingReferenceImage);$('tailorMessage').textContent='Editing '+r.reference_code+'. Your reference number will stay the same.';$('tailoringForm').scrollIntoView({behavior:'smooth',block:'start'});
+ }catch(e){$('tailorMessage').textContent='Could not open request: '+e.message;}
+};
+window.removeTailoringImage=()=>{if(!editingTailoringId||!existingReferenceImage)return;removeExistingImage=true;$('tailorImageStatus').textContent='The existing private image will be removed when you save corrections.';$('tailorRemoveImage').classList.add('hidden');};
 async function loadTailoring(db=supa()){
  if(!db)return;const box=$('tailoringList');if(!box)return;
- const {data,error}=await db.from('tailoring_requests').select('id,reference_code,garment_type,country,status,deposit_status,created_at,admin_note').order('created_at',{ascending:false}).limit(50);
+ const {data,error}=await db.from('tailoring_requests').select('id,reference_code,garment_type,country,status,deposit_status,created_at,admin_note,customer_updated_at,reference_image_url').order('created_at',{ascending:false}).limit(50);
  if(error){box.textContent='Could not load tailoring requests: '+error.message;return;}
- box.innerHTML=data.length?data.map(r=>`<article class="account-order"><b>${escapeHtml(r.reference_code)} · ${escapeHtml(r.garment_type)}</b><p class="muted">${escapeHtml(r.country)} · ${statusText[r.status]||escapeHtml(r.status)} · Deposit: ${escapeHtml(r.deposit_status)} (30% / balance 70%)</p>${r.admin_note?`<p class="muted">Store note: ${escapeHtml(r.admin_note)}</p>`:''}</article>`).join(''):'No tailoring requests yet.';
+ box.innerHTML=data.length?data.map(r=>'<article class="account-order"><b>'+escapeHtml(r.reference_code)+' · '+escapeHtml(r.garment_type)+'</b><p class="muted">'+escapeHtml(r.country)+' · '+(statusText[r.status]||escapeHtml(r.status))+' · Deposit: '+escapeHtml(r.deposit_status)+' (30% / balance 70%)</p>'+(r.customer_updated_at?'<p class="muted">You corrected this request on '+new Date(r.customer_updated_at).toLocaleString()+'.</p>':'')+(r.reference_image_url?'<p class="muted">Private reference image attached.</p>':'')+(r.admin_note?'<p class="muted">Store note: '+escapeHtml(r.admin_note)+'</p>':'')+(['submitted','under_review','awaiting_measurements'].includes(r.status)?'<button class="btn" type="button" onclick="editTailoringRequest(\''+r.id+'\')">Edit request</button>':'<p class="muted">For further changes, please contact the store.</p>')+'</article>').join(''):'No tailoring requests yet.';
 }
 $('tailoringForm')?.addEventListener('submit',async e=>{
- e.preventDefault();const db=supa(),btn=$('tailorSubmit'),msg=$('tailorMessage');if(!db){msg.textContent='Store connection unavailable.';return;}
- btn.disabled=true;msg.textContent='Submitting…';
+ e.preventDefault();const db=supa(),btn=$('tailorSubmit'),msg=$('tailorMessage');if(!db){msg.textContent='Store connection unavailable.';return;}btn.disabled=true;msg.textContent=editingTailoringId?'Saving corrections…':'Submitting…';let uploadedPath='';
  try{
-  let imageUrl='';const file=$('tailorImage').files[0];
+  const file=$('tailorImage').files[0];let imageUrl=editingTailoringId?(removeExistingImage?'':existingReferenceImage):'';
   if(file){if(file.size>6*1024*1024)throw new Error('Please use an image smaller than 6 MB.');if(!['image/jpeg','image/png','image/webp'].includes(file.type))throw new Error('Use a JPG, PNG or WebP image.');
-   const {data:{session}}=await db.auth.getSession();const path=`${session.user.id}/${crypto.randomUUID()}.${file.type.split('/')[1]}`;
-   const {error}=await db.storage.from('tailoring-references').upload(path,file,{contentType:file.type,upsert:false});if(error)throw error;imageUrl=path;
+   const {data:{session}}=await db.auth.getSession();if(!session)throw new Error('Please sign in again.');const ext=file.type==='image/jpeg'?'jpg':file.type.split('/')[1];uploadedPath=session.user.id+'/'+crypto.randomUUID()+'.'+ext;
+   const {error}=await db.storage.from('tailoring-references').upload(uploadedPath,file,{contentType:file.type,upsert:false});if(error)throw error;imageUrl=uploadedPath;
   }
-  const {data,error}=await db.rpc('submit_tailoring_request_with_contact',{p_garment_type:$('tailorGarment').value,p_fabric:$('tailorFabric').value.trim(),p_colour:$('tailorColour').value.trim(),p_style_preferences:$('tailorStyle').value.trim(),p_measurements:$('tailorMeasurements').value.trim(),p_reference_image_url:imageUrl,p_special_instructions:$('tailorNotes').value.trim(),p_desired_completion_date:$('tailorDate').value||null,p_country:$('tailorCountry').value,p_customer_name:$('tailorCustomerName').value.trim(),p_customer_phone:$('tailorCustomerPhone').value.trim()});if(error)throw error;
-  const ref=data.reference_code;const waText=`Hello Outfits with Perez & Qhasukhu. I have submitted a custom tailoring request. Reference: ${ref}. Customer: ${$('tailorCustomerName').value.trim()}. Phone: ${$('tailorCustomerPhone').value.trim()}. Garment: ${$('tailorGarment').value}. Country: ${$('tailorCountry').value}. Please guide me on the next steps.`;msg.innerHTML=`Request submitted. Your reference is <strong>${escapeHtml(ref)}</strong>. The team will review it before confirming price, timing or deposit. <a href="https://wa.me/254799281744?text=${encodeURIComponent(waText)}" target="_blank" rel="noopener">Continue on WhatsApp</a>`;$('tailoringForm').reset();await loadTailoring(db);
- }catch(err){msg.textContent='Could not submit request: '+err.message;}finally{btn.disabled=false;}
+  const fields={p_garment_type:$('tailorGarment').value,p_fabric:$('tailorFabric').value.trim(),p_colour:$('tailorColour').value.trim(),p_style_preferences:$('tailorStyle').value.trim(),p_measurements:$('tailorMeasurements').value.trim(),p_reference_image_url:imageUrl,p_special_instructions:$('tailorNotes').value.trim(),p_desired_completion_date:$('tailorDate').value||null,p_country:$('tailorCountry').value};
+  if(editingTailoringId){
+   const {data,error}=await db.rpc('update_customer_tailoring_request',{p_request_id:editingTailoringId,...fields,p_customer_name:$('tailorCustomerName').value.trim(),p_customer_phone:$('tailorCustomerPhone').value.trim()});if(error)throw error;
+   const oldPath=data?.old_reference_image_url;if(oldPath&&oldPath!==imageUrl){const {error:removeError}=await db.storage.from('tailoring-references').remove([oldPath]);if(removeError)msg.textContent='Corrections saved, but the old private image could not be removed. Please contact the store.';}
+   if(!msg.textContent.startsWith('Corrections saved'))msg.textContent='Corrections saved for '+data.reference_code+'. Your original request and reference number are unchanged.';
+   resetTailoringEditor();
+  }else{
+   const {data,error}=await db.rpc('submit_tailoring_request_with_contact',{...fields,p_customer_name:$('tailorCustomerName').value.trim(),p_customer_phone:$('tailorCustomerPhone').value.trim()});if(error)throw error;
+   const ref=data.reference_code;const waText='Hello Outfits with Perez & Qhasukhu. I have submitted a custom tailoring request. Reference: '+ref+'. Customer: '+$('tailorCustomerName').value.trim()+'. Phone: '+$('tailorCustomerPhone').value.trim()+'. Garment: '+$('tailorGarment').value+'. Country: '+$('tailorCountry').value+'. Please guide me on the next steps.';
+   msg.innerHTML='Request submitted. Your reference is <strong>'+escapeHtml(ref)+'</strong>. The team will review it before confirming price, timing or deposit. <a href="https://wa.me/254799281744?text='+encodeURIComponent(waText)+'" target="_blank" rel="noopener">Continue on WhatsApp</a>';$('tailoringForm').reset();
+  }
+  await loadTailoring(db);
+ }catch(err){if(uploadedPath)await db.storage.from('tailoring-references').remove([uploadedPath]);msg.textContent='Could not save request: '+err.message;}finally{btn.disabled=false;}
 });
 window.requestCancellation=async id=>{const reason=prompt('Why would you like to cancel this order?');if(reason===null)return;try{const {error}=await supa().rpc('request_order_cancellation',{p_order_id:id,p_reason:reason});if(error)throw error;await loadAccount();}catch(e){alert(e.message)}};
 window.withdrawCancellation=async id=>{try{const {error}=await supa().rpc('withdraw_order_cancellation',{p_order_id:id});if(error)throw error;await loadAccount();}catch(e){alert(e.message)}};
