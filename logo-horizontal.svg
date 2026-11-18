@@ -1,10 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 150" role="img" aria-labelledby="title desc">
-<title id="title">Outfits with Perez and Qhasukhu</title><desc id="desc">Gold P and Q monogram beside the Outfits with Perez and Qhasukhu wordmark.</desc>
-<rect x="2" y="2" width="146" height="146" rx="14" fill="#142338"/>
-<path d="M42 39 L54 20 L75 34 L96 20 L109 39 L104 50 L47 50 Z" fill="#C6A365"/>
-<text x="40" y="99" font-family="Georgia,serif" font-size="72" fill="#F8F2E8">P</text><text x="72" y="127" font-family="Georgia,serif" font-size="72" fill="#C6A365">Q</text>
-<text x="180" y="70" font-family="Georgia,serif" font-size="48" letter-spacing="5" fill="#142338">OUTFITS</text>
-<text x="183" y="105" font-family="Arial,sans-serif" font-size="20" letter-spacing="2" fill="#6B6256">WITH PEREZ &amp; QHASUKHU</text>
-<path d="M183 121 H620" stroke="#C6A365" stroke-width="2"/>
-<text x="183" y="143" font-family="Arial,sans-serif" font-size="12" letter-spacing="3" fill="#6B6256">YOUR STYLE. YOUR FIT. YOUR OCCASION.</text>
+<title id="title">Outfits with Perez and Qhasukhu</title>
+<desc id="desc">Premium navy and champagne gold P and Q monogram with crown and full brand wordmark.</desc>
+<defs><linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e8d3a1"/><stop offset="1" stop-color="#b58a45"/></linearGradient></defs>
+<rect x="3" y="3" width="144" height="144" rx="18" fill="#10243d"/>
+<path d="M38 42 50 20 73 35 96 20 109 42 104 52 43 52Z" fill="url(#gold)"/>
+<path d="M42 60h54" stroke="#d8bd83" stroke-width="2" opacity=".8"/>
+<text x="39" y="111" font-family="Georgia,serif" font-size="76" fill="#fffaf0">P</text>
+<text x="75" y="133" font-family="Georgia,serif" font-size="67" fill="url(#gold)">Q</text>
+<text x="177" y="76" font-family="Georgia,serif" font-size="51" letter-spacing="5" fill="#10243d">OUTFITS</text>
+<text x="181" y="111" font-family="Arial,sans-serif" font-size="20" font-weight="600" letter-spacing="2.1" fill="#5d5549">WITH PEREZ &amp; QHASUKHU</text>
+<path d="M181 124H705" stroke="url(#gold)" stroke-width="2"/>
+<text x="182" y="143" font-family="Arial,sans-serif" font-size="11" letter-spacing="3" fill="#76694f">YOUR STYLE • YOUR FIT • YOUR OCCASION</text>
 </svg>
