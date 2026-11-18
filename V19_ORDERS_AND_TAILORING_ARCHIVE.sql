@@ -56,7 +56,7 @@ returns jsonb
 language plpgsql
 security definer
 set search_path=public,pg_temp
-as $
+as $function$
 declare v_reference text;
 begin
   if auth.uid() is null then raise exception 'Please sign in to archive a tailoring request.'; end if;
@@ -66,7 +66,7 @@ begin
   if v_reference is null then raise exception 'Only your completed or delivered active tailoring requests can be archived.'; end if;
   return jsonb_build_object('reference_code',v_reference,'archived',true);
 end;
-$;
+$function$;
 revoke all on function public.archive_own_delivered_tailoring_request(uuid) from public,anon;
 grant execute on function public.archive_own_delivered_tailoring_request(uuid) to authenticated;
 
