@@ -1,20 +1,25 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 180" role="img" aria-labelledby="title desc">
-<title id="title">Outfits with Perez and Qhasukhu — fashion tailoring identity</title>
-<desc id="desc">A refined tailor's mannequin silhouette wrapped with a flowing measuring tape, beside the full navy and champagne-gold brand name.</desc>
+<title id="title">Outfits with Perez and Qhasukhu — tailored suit logo</title>
+<desc id="desc">A clearly defined formal suit jacket with lapels, shirt and tie, accented by a gold measuring tape, beside the full brand name.</desc>
 <defs>
-  <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ead8ad"/><stop offset=".52" stop-color="#c6a365"/><stop offset="1" stop-color="#a77c3b"/></linearGradient>
-  <linearGradient id="navy" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#173655"/><stop offset="1" stop-color="#091a2e"/></linearGradient>
+ <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f0dfb8"/><stop offset=".55" stop-color="#c6a365"/><stop offset="1" stop-color="#a77c3b"/></linearGradient>
+ <linearGradient id="navy" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#173655"/><stop offset="1" stop-color="#091a2e"/></linearGradient>
 </defs>
 <rect x="4" y="4" width="166" height="166" rx="24" fill="url(#navy)"/>
-<!-- Tailor's mannequin: neck, shoulders, shaped bodice and waist -->
-<path d="M77 28 L77 42 C66 46 54 54 44 67 L57 78 L66 69 L66 91 C65 104 59 119 53 137 L121 137 C115 119 109 104 108 91 L108 69 L117 78 L130 67 C120 54 108 46 97 42 L97 28 Z" fill="#fffaf0" opacity=".97"/>
-<path d="M77 28 L97 28 L97 43 C91 49 83 49 77 43 Z" fill="url(#gold)"/>
-<path d="M66 69 C77 76 97 76 108 69 M66 91 C79 98 95 98 108 91 M53 137 H121" fill="none" stroke="#173655" stroke-width="3" stroke-linecap="round"/>
-<!-- Measuring tape sweeping around the form -->
-<path d="M31 88 C22 48 53 20 91 20 C130 20 151 47 145 82 C141 108 120 126 103 145" fill="none" stroke="url(#gold)" stroke-width="8" stroke-linecap="round"/>
-<path d="M34 76 C31 69 30 62 32 55" fill="none" stroke="#fff0c9" stroke-width="2" stroke-linecap="round"/>
-<path d="M140 92 L151 101 L140 108" fill="none" stroke="url(#gold)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-<g stroke="#fff0c9" stroke-width="2" opacity=".95"><path d="M39 49l7 3 M47 38l6 5 M58 29l5 7 M72 24l2 8 M87 23v8 M103 26l-2 8"/></g>
+<!-- Tailored jacket silhouette -->
+<path d="M83 31 L67 39 L42 57 L27 104 L48 113 L61 91 L57 145 L83 158 L109 145 L105 91 L118 113 L139 104 L124 57 L99 39 Z" fill="#fffaf0" stroke="#d8c49a" stroke-width="2.5" stroke-linejoin="round"/>
+<!-- Shirt and collar -->
+<path d="M67 39 L83 56 L99 39 L94 31 L72 31 Z" fill="#ffffff"/>
+<path d="M67 39 L83 56 L76 83 L60 55 Z M99 39 L83 56 L90 83 L106 55 Z" fill="url(#gold)" stroke="#9e783e" stroke-width="1.5" stroke-linejoin="round"/>
+<!-- Tie -->
+<path d="M79 58 L87 58 L90 70 L83 80 L76 70 Z M83 80 L90 70 L96 130 L83 140 L70 130 L76 70 Z" fill="#173655" stroke="#c6a365" stroke-width="1.8" stroke-linejoin="round"/>
+<!-- Jacket seams, pockets and buttons -->
+<path d="M48 113 L65 105 M118 113 L101 105 M61 91 L75 151 M105 91 L91 151" fill="none" stroke="#b58a45" stroke-width="2"/>
+<path d="M53 117 L69 121 M97 121 L113 117" stroke="#173655" stroke-width="2.5"/>
+<circle cx="96" cy="94" r="2.7" fill="#c6a365"/><circle cx="97" cy="106" r="2.7" fill="#c6a365"/>
+<!-- Measuring tape curling around the jacket -->
+<path d="M30 75 C18 38 48 17 88 18 C132 19 153 48 145 83 C140 105 129 121 119 135" fill="none" stroke="url(#gold)" stroke-width="5.5" stroke-linecap="round"/>
+<g stroke="#fff0c9" stroke-width="1.8"><path d="M37 43l7 3 M47 32l6 5 M61 24l4 7 M77 20l2 7 M96 21l-1 7 M113 27l-3 7 M128 39l-5 5"/></g>
 <text x="202" y="76" font-family="Georgia,serif" font-size="52" letter-spacing="3.2" fill="#10243d">OUTFITS</text>
 <text x="205" y="116" font-family="Arial,sans-serif" font-size="25" font-weight="700" letter-spacing="2.1" fill="#24364d">WITH PEREZ &amp; QHASUKHU</text>
 <path d="M205 132 H824" stroke="url(#gold)" stroke-width="2"/>
