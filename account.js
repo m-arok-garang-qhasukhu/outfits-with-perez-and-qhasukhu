@@ -88,7 +88,7 @@ async function loadTailoring(db=supa()){
  box.innerHTML=active.length?active.map(card).join(''):'No active tailoring requests yet.';
  if(archivedBox)archivedBox.innerHTML=archived.length?archived.map(card).join(''):'No archived requests yet.';
 }
-window.archiveTailoringRequest=async id=>{if(!confirm('Archive this delivered request? It will remain saved and visible in your archived list.'))return;try{const {error}=await supa().rpc('archive_own_delivered_tailoring_request',{p_request_id:id});if(error)throw error;await loadTailoring();$('tailorMessage').textContent='Delivered request archived. Your record has not been deleted.';}catch(e){$('tailorMessage').textContent='Could not archive request: '+e.message}};
+window.archiveTailoringRequest=async id=>{if(!confirm('Archive this completed or delivered request? It will remain saved and visible in your archived list.'))return;try{const {error}=await supa().rpc('archive_own_delivered_tailoring_request',{p_request_id:id});if(error)throw error;await loadTailoring();$('tailorMessage').textContent='Delivered request archived. Your record has not been deleted.';}catch(e){$('tailorMessage').textContent='Could not archive request: '+e.message}};
 
 $('tailoringForm')?.addEventListener('submit',async e=>{
  e.preventDefault();const db=supa(),btn=$('tailorSubmit'),msg=$('tailorMessage');if(!db){msg.textContent='Store connection unavailable.';return;}btn.disabled=true;msg.textContent=editingTailoringId?'Saving corrections…':'Submitting…';let uploadedPath='';
