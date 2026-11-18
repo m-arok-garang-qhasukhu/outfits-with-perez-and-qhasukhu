@@ -129,7 +129,7 @@ async function renderTailoring(){
  }));
  $('tailoringRows').innerHTML=html.join('');
  const archivedRows=$('archivedTailoringRows');
- if(archivedRows) archivedRows.innerHTML=archived.map(r=>'<tr><td><b>'+esc(r.reference_code)+'</b></td><td>'+esc(r.customer_name||'')+'<br><small>'+esc(r.customer_phone||'')+'</small></td><td>'+esc(r.garment_type)+'<br><small>'+esc(r.measurements||'')+'</small></td><td>'+new Date(r.archived_at).toLocaleString()+'</td><td><button type="button" onclick="restoreTailoringRequest(\\''+r.id+'\\')">Restore to active</button></td></tr>').join('')||'<tr><td colspan="5">No archived requests.</td></tr>';
+ if(archivedRows) archivedRows.innerHTML=archived.map(r=>'<tr><td><b>'+esc(r.reference_code)+'</b></td><td>'+esc(r.customer_name||'')+'</td><td>'+esc(r.garment_type)+'</td><td>'+new Date(r.archived_at).toLocaleString()+'</td><td>Archived record retained</td></tr>').join('')||'<tr><td colspan="5">No archived requests.</td></tr>';
  $('tailoringAdminMessage').textContent=active.length+' active request(s); '+archived.length+' archived. Archive only after delivery.';
 }
 window.saveTailoring=async id=>{try{const status=$('tailor-status-'+id).value;const {error}=await window.OPQ_SUPABASE.from('tailoring_requests').update({status,deposit_status:$('tailor-deposit-'+id).value,admin_note:$('tailor-note-'+id).value.trim(),customer_message:$('tailor-message-'+id).value.trim(),customer_message_sent_at:null}).eq('id',id);if(error)throw error;$('tailoringAdminMessage').textContent='Tailoring request and message draft saved. The customer sees the message only after you mark it sent.';if(status==='delivered')await renderTailoring();}catch(e){$('tailoringAdminMessage').textContent='Could not update: '+e.message}};
