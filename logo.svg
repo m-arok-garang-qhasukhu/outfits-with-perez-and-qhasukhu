@@ -1,12 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-labelledby="title desc">
-<title id="title">P&amp;Q fashion tailoring symbol</title>
-<desc id="desc">A tailor's mannequin wrapped with a champagne-gold measuring tape on a navy background.</desc>
-<defs><linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ead8ad"/><stop offset="1" stop-color="#b58a45"/></linearGradient></defs>
+<title id="title">P&amp;Q tailored suit emblem</title>
+<desc id="desc">A formal suit jacket with visible lapels, white shirt and tie, wrapped by a champagne-gold measuring tape on navy.</desc>
+<defs><linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f0dfb8"/><stop offset="1" stop-color="#b58a45"/></linearGradient></defs>
 <rect width="240" height="240" rx="28" fill="#10243d"/>
-<path d="M104 43 L104 62 C88 68 71 81 57 99 L74 113 L88 101 L88 133 C86 153 76 175 68 198 L172 198 C164 175 154 153 152 133 L152 101 L166 113 L183 99 C169 81 152 68 136 62 L136 43 Z" fill="#fffaf0"/>
-<path d="M104 43 H136 V64 C126 73 114 73 104 64 Z" fill="url(#gold)"/>
-<path d="M88 101 C106 113 134 113 152 101 M88 133 C109 145 131 145 152 133 M68 198 H172" fill="none" stroke="#173655" stroke-width="4" stroke-linecap="round"/>
-<path d="M43 127 C29 76 69 31 120 31 C170 31 207 68 198 113 C193 151 165 177 143 211" fill="none" stroke="url(#gold)" stroke-width="10" stroke-linecap="round"/>
-<path d="M190 151 L204 162 L190 173" fill="none" stroke="url(#gold)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-<g stroke="#fff0c9" stroke-width="3"><path d="M51 79l9 4 M62 61l8 6 M78 47l6 9 M99 39l2 10 M123 38v10 M147 43l-3 10"/></g>
+<path d="M120 48 L97 59 L61 83 L39 151 L69 164 L87 128 L80 202 L120 220 L160 202 L153 128 L171 164 L201 151 L179 83 L143 59 Z" fill="#fffaf0" stroke="#d8c49a" stroke-width="3" stroke-linejoin="round"/>
+<path d="M97 59 L120 83 L107 127 L80 83 Z M143 59 L120 83 L133 127 L160 83 Z" fill="url(#gold)" stroke="#a77c3b" stroke-width="2" stroke-linejoin="round"/>
+<path d="M111 85 L129 85 L135 103 L120 122 L105 103 Z" fill="#173655" stroke="#c6a365" stroke-width="2"/>
+<path d="M120 122 L135 103 L145 190 L120 205 L95 190 L105 103 Z" fill="#173655" stroke="#c6a365" stroke-width="2" stroke-linejoin="round"/>
+<path d="M69 164 L94 151 M171 164 L146 151 M87 128 L105 202 M153 128 L135 202" fill="none" stroke="#b58a45" stroke-width="3"/>
+<path d="M77 166 L99 171 M141 171 L163 166" fill="none" stroke="#173655" stroke-width="3"/>
+<circle cx="145" cy="143" r="3.2" fill="#c6a365"/><circle cx="147" cy="159" r="3.2" fill="#c6a365"/>
+<path d="M40 111 C18 56 59 20 120 20 C181 20 220 62 205 116 C198 145 183 168 166 190" fill="none" stroke="url(#gold)" stroke-width="7" stroke-linecap="round"/>
+<g stroke="#fff0c9" stroke-width="2.5"><path d="M48 68l10 5 M62 49l9 7 M82 34l6 10 M106 27l2 11 M132 27l-1 11 M157 36l-5 10 M179 53l-8 8"/></g>
 </svg>
