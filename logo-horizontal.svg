@@ -1,14 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 150" role="img" aria-labelledby="title desc">
-<title id="title">Outfits with Perez and Qhasukhu</title>
-<desc id="desc">Premium navy and champagne gold P and Q monogram with crown and full brand wordmark.</desc>
-<defs><linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e8d3a1"/><stop offset="1" stop-color="#b58a45"/></linearGradient></defs>
-<rect x="3" y="3" width="144" height="144" rx="18" fill="#10243d"/>
-<path d="M38 42 50 20 73 35 96 20 109 42 104 52 43 52Z" fill="url(#gold)"/>
-<path d="M42 60h54" stroke="#d8bd83" stroke-width="2" opacity=".8"/>
-<text x="39" y="111" font-family="Georgia,serif" font-size="76" fill="#fffaf0">P</text>
-<text x="75" y="133" font-family="Georgia,serif" font-size="67" fill="url(#gold)">Q</text>
-<text x="177" y="76" font-family="Georgia,serif" font-size="51" letter-spacing="5" fill="#10243d">OUTFITS</text>
-<text x="181" y="111" font-family="Arial,sans-serif" font-size="20" font-weight="600" letter-spacing="2.1" fill="#5d5549">WITH PEREZ &amp; QHASUKHU</text>
-<path d="M181 124H705" stroke="url(#gold)" stroke-width="2"/>
-<text x="182" y="143" font-family="Arial,sans-serif" font-size="11" letter-spacing="3" fill="#76694f">YOUR STYLE • YOUR FIT • YOUR OCCASION</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 180" role="img" aria-labelledby="title desc">
+<title id="title">Outfits with Perez and Qhasukhu — fashion tailoring identity</title>
+<desc id="desc">A refined tailor's mannequin silhouette wrapped with a flowing measuring tape, beside the full navy and champagne-gold brand name.</desc>
+<defs>
+  <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ead8ad"/><stop offset=".52" stop-color="#c6a365"/><stop offset="1" stop-color="#a77c3b"/></linearGradient>
+  <linearGradient id="navy" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#173655"/><stop offset="1" stop-color="#091a2e"/></linearGradient>
+</defs>
+<rect x="4" y="4" width="166" height="166" rx="24" fill="url(#navy)"/>
+<!-- Tailor's mannequin: neck, shoulders, shaped bodice and waist -->
+<path d="M77 28 L77 42 C66 46 54 54 44 67 L57 78 L66 69 L66 91 C65 104 59 119 53 137 L121 137 C115 119 109 104 108 91 L108 69 L117 78 L130 67 C120 54 108 46 97 42 L97 28 Z" fill="#fffaf0" opacity=".97"/>
+<path d="M77 28 L97 28 L97 43 C91 49 83 49 77 43 Z" fill="url(#gold)"/>
+<path d="M66 69 C77 76 97 76 108 69 M66 91 C79 98 95 98 108 91 M53 137 H121" fill="none" stroke="#173655" stroke-width="3" stroke-linecap="round"/>
+<!-- Measuring tape sweeping around the form -->
+<path d="M31 88 C22 48 53 20 91 20 C130 20 151 47 145 82 C141 108 120 126 103 145" fill="none" stroke="url(#gold)" stroke-width="8" stroke-linecap="round"/>
+<path d="M34 76 C31 69 30 62 32 55" fill="none" stroke="#fff0c9" stroke-width="2" stroke-linecap="round"/>
+<path d="M140 92 L151 101 L140 108" fill="none" stroke="url(#gold)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<g stroke="#fff0c9" stroke-width="2" opacity=".95"><path d="M39 49l7 3 M47 38l6 5 M58 29l5 7 M72 24l2 8 M87 23v8 M103 26l-2 8"/></g>
+<text x="202" y="76" font-family="Georgia,serif" font-size="52" letter-spacing="3.2" fill="#10243d">OUTFITS</text>
+<text x="205" y="116" font-family="Arial,sans-serif" font-size="25" font-weight="700" letter-spacing="2.1" fill="#24364d">WITH PEREZ &amp; QHASUKHU</text>
+<path d="M205 132 H824" stroke="url(#gold)" stroke-width="2"/>
+<text x="207" y="158" font-family="Arial,sans-serif" font-size="15" letter-spacing="3.2" fill="#8b7046">YOUR STYLE • YOUR FIT • YOUR OCCASION</text>
 </svg>
