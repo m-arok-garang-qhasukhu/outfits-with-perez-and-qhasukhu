@@ -79,7 +79,7 @@ checkoutForm.onsubmit=async e=>{
  const items=cart.map(c=>({product_id:String(c.id),quantity:Number(c.qty),size:String(c.size||'')}));
  btn.disabled=true;btn.textContent='Submitting order…';msg.textContent='';
  try{
-   const payload={p_customer_name:document.getElementById('checkoutName').value.trim(),p_phone:document.getElementById('checkoutPhone').value.trim(),p_delivery_address:document.getElementById('checkoutCountry').value+' — '+document.getElementById('checkoutAddress').value.trim(),p_notes:document.getElementById('checkoutNotes').value.trim(),p_items:items};
+   const payload={p_customer_name:document.getElementById('checkoutName').value.trim(),p_phone:document.getElementById('checkoutPhone').value.trim(),p_delivery_address:document.getElementById('checkoutCountry').value+' — '+document.getElementById('checkoutAddress').value.trim(),p_notes:document.getElementById('checkoutNotes').value.trim()+'\\n[Terms & Policies accepted: P&Q-2026-01 at '+new Date().toISOString()+']',p_items:items};
    const {data,error}=await window.OPQ_SUPABASE.rpc('create_customer_order',payload); if(error)throw error;
    const orderId=typeof data==='string'?data:(data?.order_id||data?.id||data?.[0]?.order_id);
    if(!orderId)throw new Error('The order may have been received, but no order reference was returned. Please contact us before submitting again.');
