@@ -6,7 +6,7 @@
   <title>Outfits with Perez & Qhasukhu | Tailored for Every Occasion</title>
   <meta name="description" content="Premium church, formal and custom-tailored fashion from Outfits with Perez & Qhasukhu in Kenya.">
   <link rel="stylesheet" href="styles.css">
-</head>
+<style>#guideBackdrop{position:fixed;inset:0;background:#101827b8;z-index:1200;display:flex;align-items:center;justify-content:center;padding:18px}#guideBackdrop[hidden]{display:none}#guideBackdrop .modal{position:relative;max-width:620px;width:100%;max-height:85vh;overflow:auto;padding:30px;background:#fff}#guideBackdrop li{margin:12px 0;line-height:1.55}#guideBackdrop .modal-close{position:absolute;right:14px;top:10px}</style></head>
 <body>
   <div class="announcement">Bespoke style • Made with care in Kenya • WhatsApp payment assistance available</div>
 
@@ -16,7 +16,7 @@
     </a>
     <button class="menu-btn" id="menuBtn" aria-label="Open menu">☰</button>
     <nav id="mainNav">
-      <a href="#home">Home</a><a href="#shop">Shop</a><a href="#categories">Categories</a>
+      <a href="#home">Home</a><a href="#shop">Shop</a><a href="#siteGuide" id="guideOpen">How to use</a><a href="#categories">Categories</a>
       <a href="#tailoring">Custom Tailoring</a><a href="#about">About</a><a href="#reviews">Reviews</a><a href="#faq">FAQs</a><a href="#contact">Contact</a><a href="account.html">My account / Track order</a>
     </nav>
     <button class="cart-btn" id="cartBtn">Bag <span id="cartCount">0</span></button>
@@ -99,7 +99,7 @@
 
   <footer><div class="footer-brand"><img class="footer-logo footer-wordmark" src="logo-horizontal.svg" alt="Outfits with Perez and Qhasukhu"></div><p>© 2026 Outfits with Perez & Qhasukhu. All rights reserved.</p><a href="admin.html">Admin</a></footer>
 
-  <div class="modal-backdrop" id="modalBackdrop" hidden><div class="modal" id="productModal"></div></div>
+  <div class="modal-backdrop" id="guideBackdrop" hidden><div class="modal" role="dialog" aria-modal="true" aria-labelledby="guideTitle"><button class="modal-close" id="guideClose" type="button" aria-label="Close guide">×</button><p class="eyebrow">WELCOME TO P&Q</p><h2 id="guideTitle">A quick guide to the website</h2><ol><li><b>Shop:</b> Browse collections, use categories or search, open Quick View, choose a size and add an item to your bag.</li><li><b>Place an order:</b> Open your bag, sign in or create an account, enter delivery details and accept the Terms & Policies before submitting.</li><li><b>Custom tailoring:</b> Open My Account, sign in, complete the tailoring form, use the guided body measurements or ask our tailor for help, then submit.</li><li><b>Track progress:</b> Return to My Account to view your orders, tailoring progress, store messages and eligible request-edit options.</li><li><b>Need help?</b> Use FAQs or contact the team on WhatsApp. Payment instructions and delivery arrangements are confirmed directly.</li></ol><p><a class="btn btn-dark" href="terms.html">Read Terms & Policies</a> <a class="btn" href="account.html">Go to My Account</a></p></div></div><div class="modal-backdrop" id="modalBackdrop" hidden><div class="modal" id="productModal"></div></div>
   <aside class="cart-drawer" id="cartDrawer"><div class="drawer-head"><h3>Your bag</h3><button id="closeCart">×</button></div><div id="cartItems"></div><div class="drawer-foot"><div><span>Estimated total</span><strong id="cartTotal">KSh 0</strong></div><button class="btn btn-dark full" id="checkoutStart">Place order on website</button><p class="payment-note">Your order is saved to the store. We will coordinate payment with you on WhatsApp for now.</p>
 <form id="checkoutForm" class="checkout-form" hidden>
   <h4>Delivery details</h4><p class="payment-note">Sign in is required to place an order and track it later. <a href="account.html?return=checkout">Sign in / create account</a></p>
@@ -107,7 +107,7 @@
   <label>Phone number<input id="checkoutPhone" name="phone" required autocomplete="tel" maxlength="30" placeholder="Include country code, e.g. +2547…"></label>
   <label>Country<select id="checkoutCountry" required><option>Kenya</option><option>Uganda</option><option>South Sudan</option><option>Rwanda</option><option>Burundi</option><option>Tanzania</option></select></label>
   <label>Delivery address / town<textarea id="checkoutAddress" name="delivery_address" rows="2" required maxlength="500"></textarea></label>
-  <label>Order notes (optional)<textarea id="checkoutNotes" name="notes" rows="2" maxlength="1000" placeholder="Delivery instructions or tailoring notes"></textarea></label>
+  <label>Order notes (optional)<textarea id="checkoutNotes" name="notes" rows="2" maxlength="1000" placeholder="Delivery instructions or tailoring notes"></textarea></label><label style="display:flex;gap:9px;align-items:flex-start;font-size:11px;line-height:1.5"><input id="checkoutTerms" type="checkbox" required style="margin-top:3px"><span>I have read and agree to the <a href="terms.html" target="_blank" rel="noopener">Terms & Policies</a>, including payment, delivery, cancellation and privacy terms.</span></label>
   <button class="btn btn-dark full" type="submit" id="submitOrder">Submit order</button>
   <p id="checkoutMessage" role="status" class="payment-note"></p>
   <button type="button" id="checkoutCancel" class="clear-btn">Back to bag</button>
