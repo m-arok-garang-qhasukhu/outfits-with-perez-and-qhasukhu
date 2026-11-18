@@ -74,7 +74,8 @@ document.getElementById('checkoutStart').onclick=async()=>{
 document.getElementById('checkoutCancel').onclick=()=>{checkoutForm.hidden=true;document.getElementById('checkoutStart').hidden=false};
 checkoutForm.onsubmit=async e=>{
  e.preventDefault(); const btn=document.getElementById('submitOrder'),msg=document.getElementById('checkoutMessage');
- if(!cart.length){msg.textContent='Your bag is empty.';return;}\n if(!document.getElementById('checkoutTerms').checked){msg.textContent='Please accept the Terms & Policies before submitting your order.';return;}
+ if(!cart.length){msg.textContent='Your bag is empty.';return;}
+ if(!document.getElementById('checkoutTerms').checked){msg.textContent='Please accept the Terms & Policies before submitting your order.';return;}
  const items=cart.map(c=>({product_id:String(c.id),quantity:Number(c.qty),size:String(c.size||'')}));
  btn.disabled=true;btn.textContent='Submitting order…';msg.textContent='';
  try{
