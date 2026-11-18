@@ -8,12 +8,12 @@ const seed=[
 {id:6,name:"Women's Tailored Blazer",price:5500,category:"Women",sizes:"8,10,12,14,16,18",description:"A structured blazer that adds polish to dresses, skirts and trousers.",new:false,featured:false,image:""}
 ];
 const money=n=>`KSh ${Number(n).toLocaleString('en-KE')}`;
-let catalog=null;
+let catalog=null, productRatings={};
 function products(){if(Array.isArray(catalog))return catalog;try{const p=JSON.parse(localStorage.getItem(KEY));return Array.isArray(p)&&p.length?p:seed}catch{return seed}}
 async function loadCatalog(){
  if(window.OPQ_CLOUD?.ready && window.OPQ_SUPABASE){
    const {data,error}=await window.OPQ_SUPABASE.from('products').select('*').eq('available',true).order('created_at',{ascending:false});
-   if(!error && Array.isArray(data)){catalog=data.map(x=>({id:x.id,name:x.name,price:x.price_kes,category:x.category,sizes:(x.sizes||[]).join(','),description:x.description||'',new:!!x.is_new,featured:!!x.featured,image:x.image_url||'',available:x.available!==false}));return true}
+   if(!error && Array.isArray(data)){catalog=data.map(x=>({id:x.id,name:x.name,price:x.price_kes,category:x.category,sizes:(x.sizes||[]).join(','),description:x.description||'',new:!!x.is_new,featured:!!x.featured,image:x.image_url||'',available:x.available!==false}));productRatings={};const {data:reviews,error:reviewError}=await window.OPQ_SUPABASE.from('product_reviews').select('product_id,rating').eq('is_approved',true);if(!reviewError){for(const review of reviews||[]){const key=String(review.product_id);if(!productRatings[key])productRatings[key]={sum:0,count:0};productRatings[key].sum+=Number(review.rating)||0;productRatings[key].count++;}}else console.warn('Approved product ratings unavailable:',reviewError);return true}
    console.warn('Cloud catalog unavailable; using demo catalog.',error);
  }
  catalog=null;
@@ -30,7 +30,7 @@ function render(){
  if(state.search)p=p.filter(x=>(x.name+' '+x.category+' '+x.description).toLowerCase().includes(state.search.toLowerCase()));
  grid.innerHTML=p.map(x=>`<article class="product-card">
  <div class="product-image">${x.image?`<img src="${x.image}" alt="${x.name}">`:`<div class="placeholder">${x.category==='Men'?'M':'W'}</div>`}${x.new?'<span class="badge">NEW</span>':''}<button class="quick" onclick='quickView(${JSON.stringify(String(x.id))})'>QUICK VIEW</button></div>
- <div class="product-info"><h3>${x.name}</h3><div class="product-meta"><span>${x.category}</span><span class="price">${money(x.price)}</span></div></div></article>`).join('');
+ <div class="product-info"><h3>${x.name}</h3><div class="product-meta"><span>${x.category}</span><span class="price">${money(x.price)}</span></div><div class="product-rating" aria-label="Customer rating">${productRatings[String(x.id)] ? "★ "+(productRatings[String(x.id)].sum/productRatings[String(x.id)].count).toFixed(1)+" · "+productRatings[String(x.id)].count+" review"+(productRatings[String(x.id)].count===1?"":"s") : "No reviews yet"}</div></div></article>`).join('');
  empty.hidden=!!p.length; renderCart();
 }
 document.querySelectorAll('.filter').forEach(b=>b.onclick=()=>{document.querySelectorAll('.filter').forEach(x=>x.classList.remove('active'));b.classList.add('active');state.filter=b.dataset.filter;render()});
