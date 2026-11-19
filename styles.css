@@ -525,3 +525,17 @@ footer a:hover{color:#fff}
 .public-homepage footer .footer-logo{
   filter:none !important;
 }
+
+
+/* Footer-only colour refinement: deep cream background, black text; preserve logo */
+.public-homepage footer{
+  background:#e8dcc8;
+  border-top:4px solid #76243d;
+  color:#111;
+}
+.public-homepage footer :where(p,a,span,strong,small,b,em){
+  color:#111 !important;
+  text-shadow:none;
+}
+.public-homepage footer a:hover{color:#563522 !important}
+.public-homepage footer .footer-logo{filter:none !important}
