@@ -111,3 +111,104 @@ footer{background:#08182b;border-top:3px solid #c6a365;padding:32px 7vw}
 
 /* P&Q creator credit */
 .footer-credit{display:inline-block;margin-top:7px;color:#c9c1b4;line-height:1.7}.footer-credit strong{color:#fff;font-weight:600}
+
+
+/* P&Q public storefront refresh — dashboards intentionally excluded */
+:root{
+  --ink:#111111;
+  --muted:#292929;
+  --cream:#f4efe6;
+  --paper:#fffefa;
+  --gold:#b1843e;
+  --line:#ded5c8;
+  --white:#ffffff;
+  --shadow:0 22px 60px rgba(17,17,17,.12);
+}
+body{color:#111;background:#fffefa;font-weight:600}
+p,li,small,label,summary,.muted,.payment-note,.product-meta,.hero-text,
+.tailoring-copy>p,.tailoring li span,.about p:not(.eyebrow):not(.quote),
+.contact p:not(.eyebrow),.regional p:not(.eyebrow),.faq-grid details p,
+.terms-note{color:#222;font-weight:600}
+h1,h2,h3,h4,h5,h6,.section h2,.hero h1,.tailoring h2,.about h2,
+.contact h2,.modal-copy h2,.drawer-head h3,.product-info h3,
+.cart-row h4,.terms-card h2{
+  color:#101010;
+  font-weight:800!important;
+}
+.hero h1 em,.tailoring h2 em,.regional h2 em{color:#101010;font-weight:800}
+.eyebrow{color:#80591f;font-weight:800}
+.announcement{background:#111;color:#fff;font-weight:800}
+.site-header{background:rgba(255,254,250,.97);border-bottom:1px solid #d9cbb7}
+.site-header nav a,.cart-btn,.brand strong,.brand small{color:#111;font-weight:800}
+.site-header nav a:hover,.text-link:hover{color:#7a2635}
+.cart-btn span{background:#111;color:#fff}
+.hero{background:linear-gradient(115deg,#f4efe6 0%,#fffefa 58%,#eee5d7 100%)}
+.hero-text,.hero-proof{color:#222;font-weight:700}
+.hero-proof span{font-weight:800}
+.btn{font-weight:800}
+.btn-dark{background:#111!important;color:#fff!important;border-color:#111!important}
+.btn-dark:hover{background:#333!important}
+.btn-gold{background:linear-gradient(135deg,#e5ce9e,#c39a59);color:#111;border-color:#bd9553}
+.btn-outline-light{background:#fffefa;color:#111;border-color:#111}
+.btn-outline-light:hover{background:#f0e7d8}
+.trust-strip{background:#fffefa}
+.trust-strip b{font-family:"DM Sans",Arial,sans-serif;color:#111;font-weight:800}
+.trust-strip span,.trust-strip small{color:#222;font-weight:700}
+.section{background:#fffefa}
+.section h2{color:#111}
+.category-tile{border:1px solid rgba(17,17,17,.14)}
+.category-tile span,.category-tile small{color:#fff;font-weight:800}
+.filter{color:#111;border-color:#cfc3b2;font-weight:800}
+.filter.active{background:#111;color:#fff;border-color:#111}
+.search{border-color:#111}
+.search input{color:#111;font-weight:700}
+.product-image{background:#eee7dc}
+.product-info h3{font-family:"DM Sans",Arial,sans-serif;color:#111;font-weight:800!important}
+.product-meta,.price,.product-rating{color:#111;font-weight:800}
+.badge,.quick{color:#111;font-weight:800}
+.tailoring{
+  background:linear-gradient(125deg,#f0e7d8,#fbf8f1);
+  color:#111;border:1px solid #c9a66b;
+  box-shadow:0 20px 55px rgba(17,17,17,.09)
+}
+.tailoring .eyebrow{color:#80591f}
+.tailoring h2,.tailoring h2 em{color:#111}
+.tailoring-copy>p,.tailoring li span{color:#222}
+.tailoring li{border-color:#d8cbb8}
+.tailoring li b{color:#111;font-size:13px;font-weight:800}
+.tailoring .btn-light{background:#111;color:#fff;border-color:#111;font-weight:800}
+.about{background:#f4efe6}
+.about-number{color:#9a7135;opacity:.8}
+.about p:not(.eyebrow):not(.quote){color:#222;font-weight:700}
+.quote{color:#111;font-weight:800}
+.regional{background:#eee5d7;color:#111;border-top:1px solid #d7c7ae;border-bottom:1px solid #d7c7ae}
+.regional .eyebrow,.regional h2,.regional h2 em,.regional p:not(.eyebrow),.region-list{color:#111}
+.regional h2{font-weight:800}
+.region-list{font-weight:800;letter-spacing:.08em}
+.reviews-section{background:#f8f4ed}
+.review-card{background:#fffefa;border:1px solid #d9cdbd}
+.review-card p,.review-card b,.review-card small{color:#111;font-weight:700}
+.review-stars{color:#80591f}
+.faq-section{background:#fffefa}
+.faq-grid summary,.faq-assistant b,.faq-assistant label{color:#111;font-weight:800}
+.faq-grid details p,.faq-assistant .muted{color:#222;font-weight:600}
+.faq-assistant{background:#f4efe6;border-color:#d9cbb7}
+.faq-assistant input{color:#111;font-weight:700}
+.contact{background:#fffefa}
+.contact-cards a{background:#f7f2e9;border-color:#d8cbb8;color:#111}
+.contact-cards a:last-child{background:#e6d3ae;color:#111;border-color:#c5a36c}
+.contact-cards small,.contact-cards strong{color:#111;font-weight:800}
+footer{background:#111;color:#fff}
+footer p,footer a,.footer-credit{color:#fff;font-weight:700}
+.footer-credit strong{color:#fff;font-weight:900}
+.modal,.cart-drawer{background:#fffefa;color:#111}
+.modal-copy h2,.modal-copy p,.drawer-head h3,.cart-row h4,.drawer-foot strong{color:#111;font-weight:800}
+.modal-copy p,.cart-row small,.drawer-foot span{color:#222;font-weight:600}
+.size-row button,.qty button{color:#111;font-weight:800}
+.payment-note{color:#222;font-weight:700}
+.terms-card{background:#fffefa;border-color:#d9cbb7}
+.terms-card h2{font-weight:800!important}
+.terms-note{color:#222!important;font-weight:700}
+@media(max-width:900px){
+ .site-header nav{background:#fffefa}
+}
