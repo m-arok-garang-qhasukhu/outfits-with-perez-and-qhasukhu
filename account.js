@@ -36,7 +36,7 @@ function ensureCustomerDashboardTools(){
 }
 function updateCustomerOverview(orders=[],tailoring=[]){
  const activeOrders=orders.filter(o=>!o.archived_at&&!['delivered','cancelled'].includes(o.status)).length;
- const completedOrders=orders.filter(o=>['delivered','cancelled'].includes(o.status)).length;
+ const completedOrders=orders.filter(o=>o.status==='delivered').length;
  const activeTailoring=tailoring.filter(r=>!r.customer_archived_at&&!['completed','declined'].includes(r.status)).length;
  const archivedRecords=orders.filter(o=>o.archived_at).length+tailoring.filter(r=>r.customer_archived_at).length;
  const put=(id,value)=>{const el=$(id);if(el)el.textContent=String(value);};
