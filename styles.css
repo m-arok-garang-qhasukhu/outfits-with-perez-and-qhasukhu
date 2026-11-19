@@ -317,3 +317,102 @@ footer a:hover{color:#fff}
 .terms-card h2{color:#142b4a}
 .terms-note{color:#293d56!important}
 @media(max-width:900px){.site-header nav{background:#fffdfb}}
+
+
+/* P&Q homepage refresh: warm brown, caramel and ivory — dashboards excluded */
+.public-homepage{
+  --home-brown:#563522;
+  --home-deep:#352116;
+  --home-mid:#795238;
+  --home-caramel:#bd8a55;
+  --home-cream:#f7f0e7;
+  --home-paper:#fffaf4;
+  --home-ink:#241b16;
+  --home-muted:#5b4a3d;
+  background:var(--home-paper);
+  color:var(--home-ink);
+}
+.public-homepage .announcement{background:var(--home-deep);color:#fff4e8}
+.public-homepage .site-header{background:rgba(255,250,244,.98);border-bottom:1px solid #e4d5c5}
+.public-homepage .site-header nav a,
+.public-homepage .cart-btn,
+.public-homepage .brand strong,
+.public-homepage .brand small{color:var(--home-brown)}
+.public-homepage .site-header nav a:hover{color:var(--home-caramel)}
+.public-homepage .cart-btn span{background:var(--home-brown);color:#fff}
+.public-homepage .hero{background:linear-gradient(118deg,#ead9c7 0%,#f8f0e7 55%,#d8b99c 100%)}
+.public-homepage h1,.public-homepage h2,.public-homepage h3,
+.public-homepage h4,.public-homepage h5,.public-homepage h6,
+.public-homepage .section h2,.public-homepage .hero h1,
+.public-homepage .tailoring h2,.public-homepage .about h2,
+.public-homepage .contact h2{color:var(--home-deep)}
+.public-homepage .hero h1 em,
+.public-homepage .tailoring h2 em,
+.public-homepage .regional h2 em{color:var(--home-mid)}
+.public-homepage .eyebrow{color:#80512f}
+.public-homepage p,.public-homepage li,.public-homepage small,
+.public-homepage label,.public-homepage summary,
+.public-homepage .muted,.public-homepage .hero-text,
+.public-homepage .hero-proof,.public-homepage .product-meta,
+.public-homepage .about p:not(.eyebrow):not(.quote),
+.public-homepage .contact p:not(.eyebrow),
+.public-homepage .faq-grid details p{color:var(--home-muted)}
+.public-homepage .btn-dark{background:var(--home-deep)!important;border-color:var(--home-deep)!important;color:#fff!important}
+.public-homepage .btn-dark:hover{background:var(--home-mid)!important;border-color:var(--home-mid)!important}
+.public-homepage .btn-gold{background:var(--home-brown);border-color:var(--home-brown);color:#fff}
+.public-homepage .btn-gold:hover{background:var(--home-mid);color:#fff}
+.public-homepage .btn-outline-light{color:var(--home-brown);border-color:var(--home-brown)}
+.public-homepage .btn-outline-light:hover{background:var(--home-brown);color:#fff}
+.public-homepage .trust-strip,.public-homepage .section,
+.public-homepage .shop-section,.public-homepage .contact{background:var(--home-paper);border-color:#e4d5c5}
+.public-homepage .trust-strip b,.public-homepage .product-rating,
+.public-homepage .review-stars{color:var(--home-mid)}
+.public-homepage .category-tile{border-color:#d7c0aa}
+.public-homepage .filter{color:var(--home-brown);border-color:#d7c0aa}
+.public-homepage .filter.active{background:var(--home-brown);border-color:var(--home-brown);color:#fff}
+.public-homepage .search{border-color:#a98a70}
+.public-homepage .search input{color:var(--home-deep)}
+.public-homepage .product-image{background:#eee2d5}
+.public-homepage .product-info h3,.public-homepage .product-meta,
+.public-homepage .price{color:var(--home-deep)}
+.public-homepage .quick{background:var(--home-brown);color:#fff}
+.public-homepage .tailoring{background:linear-gradient(125deg,#4a2c1c,#70482f);border:1px solid #bd8a55;color:#fff}
+.public-homepage .tailoring .eyebrow{color:#edc99f}
+.public-homepage .tailoring h2,.public-homepage .tailoring h2 em{color:#fff}
+.public-homepage .tailoring-copy>p,.public-homepage .tailoring li span{color:#f2e5d8}
+.public-homepage .tailoring li{border-color:rgba(255,255,255,.2)}
+.public-homepage .tailoring li b{color:#fff}
+.public-homepage .tailoring .btn-light{background:#bd8a55;color:#24170f;border-color:#bd8a55}
+.public-homepage .about,.public-homepage .reviews-section{background:#f1e6da}
+.public-homepage .about-number{color:#9a6842}
+.public-homepage .quote{color:#70482f}
+.public-homepage .regional{background:#795238;color:#fff;border-color:#563522}
+.public-homepage .regional .eyebrow,.public-homepage .regional h2,
+.public-homepage .regional h2 em,.public-homepage .regional p:not(.eyebrow),
+.public-homepage .region-list{color:#fff}
+.public-homepage .review-card{background:#fffaf4;border-color:#e1d0bf}
+.public-homepage .review-card p,.public-homepage .review-card b{color:#352116}
+.public-homepage .review-card small{color:#795f4d}
+.public-homepage .faq-section{background:#fffaf4}
+.public-homepage .faq-grid summary,.public-homepage .faq-assistant b,
+.public-homepage .faq-assistant label{color:#352116}
+.public-homepage .faq-grid details{border-color:#e4d5c5}
+.public-homepage .faq-assistant{background:#f1e6da;border-color:#ddc7b3}
+.public-homepage .faq-assistant input{color:#352116;border-color:#c9ad94}
+.public-homepage .contact-cards a{background:#f1e6da;border-color:#d8c1ab;color:#352116}
+.public-homepage .contact-cards a:last-child{background:#795238;border-color:#795238;color:#fff}
+.public-homepage footer{background:#2e1c13;border-top:4px solid #bd8a55;color:#fff}
+.public-homepage footer p{color:#e9d8c8;font-weight:600}
+.public-homepage footer a{color:#f0bd86;font-weight:800}
+.public-homepage footer a:hover{color:#fff}
+.public-homepage footer .footer-credit{color:#d8b58f;font-weight:700}
+.public-homepage footer .footer-credit strong{color:#fff0d8;font-weight:900}
+.public-homepage footer .footer-brand{color:#fff}
+.public-homepage footer .footer-logo{filter:none}
+.public-homepage .modal,.public-homepage .cart-drawer{background:#fffaf4;color:#352116}
+.public-homepage .modal-copy h2,.public-homepage .drawer-head h3,
+.public-homepage .cart-row h4,.public-homepage .drawer-foot strong{color:#352116}
+.public-homepage .modal-copy p,.public-homepage .cart-row small,
+.public-homepage .drawer-foot span{color:#5b4a3d}
+.public-homepage .terms-card{background:#fffaf4;border-color:#e4d5c5}
+@media(max-width:900px){.public-homepage .site-header nav{background:#fffaf4}}
