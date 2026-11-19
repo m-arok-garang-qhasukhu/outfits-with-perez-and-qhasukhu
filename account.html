@@ -3,6 +3,53 @@
 <title>My Account & Order Tracking | Outfits with Perez & Qhasukhu</title><link rel="stylesheet" href="styles.css">
 <style>
 body{background:#a8c9e9}.account-wrap{max-width:980px;margin:48px auto;padding:28px 5vw;background:#91b8e1;border:1px solid #739fcf;border-radius:18px;box-shadow:0 14px 36px rgba(28,68,112,.12)}.account-card{border-radius:12px}.measurement-panel{grid-column:1/-1;background:#dceafb;border:1px solid #9dbfe2;padding:18px;border-radius:10px}.measurement-field{display:flex;flex-direction:column;gap:5px;padding:12px;background:#f8fbff;border:1px solid #c3d8ee;border-radius:7px}.measurement-field strong{font-size:12px;color:#183858}.measurement-field small{font-size:10px;line-height:1.45;color:#536b84}.measurement-field input{padding:10px;border:1px solid #a9c2dd;background:#fff}.measurement-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.measurement-grid label{display:flex;flex-direction:column;gap:5px;font-size:12px}.measurement-grid input{padding:10px;border:1px solid #cbd8e8}.measurement-help{font-size:11px;color:#536579;line-height:1.5}.archive-block{margin-top:20px;padding-top:14px;border-top:1px solid #dbe5ef}.terms-check{display:flex;gap:9px;align-items:flex-start;font-size:12px;line-height:1.5;margin:14px 0}.terms-check input{margin-top:3px}@media(max-width:650px){.measurement-grid{grid-template-columns:1fr}}.account-card{background:#fff;border:1px solid #e7e0d5;padding:26px;margin:20px 0}.account-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.account-field{display:flex;flex-direction:column;gap:6px;font-size:12px}.account-field input{padding:12px;border:1px solid #d8d0c5;font:inherit}.password-wrap{position:relative;display:flex;align-items:center}.password-wrap input{width:100%;padding-right:48px}.password-toggle{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:transparent;color:#6b6256;cursor:pointer;padding:8px;display:inline-flex;align-items:center;justify-content:center;font-size:19px;line-height:1}.password-toggle:focus-visible{outline:2px solid #b69252;outline-offset:2px;border-radius:4px}.account-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:15px}.account-order{border:1px solid #e8e1d8;padding:18px;margin:14px 0}.order-top{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}.order-stage{font-weight:700;color:#9a773f}.order-items{font-size:13px;color:#666;line-height:1.8}.customer-coordination{margin:14px 0;padding:15px 17px;background:#f6f2ea;border-left:3px solid #b69252}.customer-coordination b{font-size:12px;letter-spacing:.03em}.customer-coordination p{margin:8px 0;color:#34363a;font-size:13px;line-height:1.7;white-space:pre-wrap}.customer-coordination small{color:#777;font-size:10px}.muted{color:#777;font-size:13px;line-height:1.6}.hidden{display:none!important}@media(max-width:650px){.account-grid{grid-template-columns:1fr}.account-wrap{margin:28px auto}}
+
+/* V21 customer dashboard refresh — retain blue, introduce maroon accents */
+:root{--customer-blue:#a8c9e9;--customer-blue-deep:#24527e;--customer-blue-soft:#eaf3fc;--customer-maroon:#781f3a;--customer-maroon-dark:#571329;--customer-ink:#172b43}
+body{background:linear-gradient(145deg,#d7e8f8 0%,#a8c9e9 48%,#dceafa 100%);color:var(--customer-ink)}
+.announcement{background:var(--customer-maroon-dark);color:#fff;letter-spacing:.14em}
+.account-wrap{max-width:1080px;margin:34px auto;padding:clamp(20px,3.5vw,38px);background:rgba(235,245,255,.88);border:1px solid #8db2d8;box-shadow:0 18px 48px rgba(27,68,108,.16)}
+.account-wrap>.eyebrow{color:var(--customer-maroon);font-weight:800}
+.account-wrap>h1{color:#173b60!important;font-size:clamp(34px,5vw,48px)!important;margin:0 0 22px}
+.account-card{background:#fff;border:1px solid #c6d9ec;border-radius:14px;box-shadow:0 8px 22px rgba(34,76,117,.07);padding:clamp(18px,3vw,28px);margin:18px 0}
+.account-card h2,.account-card h3{color:#193f65}
+.account-card h2{font-size:clamp(21px,3vw,27px);margin-top:0}
+.account-card h3{font-size:17px}
+.account-card .muted{color:#53677d}
+.account-grid{gap:16px}
+.account-field{font-size:12px;font-weight:700;color:#294967}
+.account-field input,.account-field select,.account-field textarea,.measurement-grid input,.measurement-field input,.review-form select,.review-form textarea{width:100%;min-height:44px;border:1px solid #b7cde3;border-radius:8px;background:#fbfdff;color:#172b43;padding:11px;font:inherit}
+.account-field input:focus,.account-field select:focus,.account-field textarea:focus,.measurement-grid input:focus,.measurement-field input:focus,.review-form textarea:focus{outline:3px solid rgba(36,82,126,.18);border-color:var(--customer-blue-deep)}
+.account-actions{gap:10px}
+.account-card .btn{border-radius:8px;min-height:44px;letter-spacing:.07em;transition:transform .16s ease,filter .16s ease}
+.account-card .btn:hover{filter:brightness(.96);transform:translateY(-1px)}
+.account-card .btn-dark{background:var(--customer-blue-deep)!important;border-color:var(--customer-blue-deep)!important;color:#fff!important}
+.account-card .btn:not(.btn-dark):not(.customer-whatsapp){background:#f2f7fc;color:#234b73;border:1px solid #a9c4df}
+#signOut{background:#fff4f6!important;color:var(--customer-maroon)!important;border:1px solid #d9aab8!important}
+.account-order{background:#fff;border:1px solid #c7d9eb;border-left:4px solid var(--customer-blue-deep);border-radius:11px;padding:18px;margin:13px 0;box-shadow:0 4px 14px rgba(35,75,115,.045)}
+.order-top{align-items:center}
+.order-top strong{color:#193f65;font-size:15px}
+.order-stage{display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;background:#e7f1fb;color:#1f527f;font-size:11px}
+.order-items{color:#465d74;line-height:1.9}
+.customer-coordination{background:#fff5f7;border-left:4px solid var(--customer-maroon);border-radius:8px}
+.customer-coordination b{color:var(--customer-maroon);font-size:12px}
+.customer-coordination p{color:#3b2830}
+.customer-coordination small{color:#765461}
+.customer-whatsapp{display:inline-flex!important;margin:8px 8px 8px 0;background:#c6283d!important;color:#fff!important;border:1px solid #a91e32!important;border-radius:8px!important;box-shadow:0 3px 8px rgba(150,20,42,.16)}
+.customer-whatsapp:hover{background:#a91e32!important;color:#fff!important}
+.archive-block{border-top:1px solid #c7d9eb}
+.archive-block h3{color:var(--customer-maroon)}
+.measurement-panel{background:#edf5fd;border:1px solid #b9d0e7;border-radius:12px}
+.measurement-field{background:#fff;border:1px solid #c7d9eb;border-radius:9px}
+.measurement-field strong{color:#214d75;font-size:12px}
+.measurement-field small,.measurement-help{color:#536b84}
+.terms-check{color:#405870}
+.terms-check a{color:var(--customer-maroon);font-weight:700;text-decoration:underline}
+.review-form{border-top:1px solid #d7e4f1}
+.review-form button{border:1px solid var(--customer-maroon);background:#fff5f7;color:var(--customer-maroon);border-radius:7px;padding:10px 14px;font-weight:700}
+#ordersMessage,#authMessage,#tailorMessage,#tailorImageStatus{padding:5px 0}
+button:disabled{opacity:.6;cursor:not-allowed}
+@media(max-width:650px){.account-wrap{margin:18px 10px;padding:17px}.account-card{padding:17px}.account-order{padding:14px}.account-actions .btn{flex:1 1 100%}.customer-whatsapp{width:100%;margin:8px 0}.order-top{align-items:flex-start}}
 </style></head><body>
 <div class="announcement">YOUR ACCOUNT • PRIVATE ORDER TRACKING</div>
 <header class="site-header"><a class="brand" href="index.html"><img class="brand-logo" src="logo.svg" alt="P/Q logo"><span><strong>OUTFITS</strong><small>with Perez & Qhasukhu</small></span></a><nav><a href="index.html">Back to store</a></nav></header>
