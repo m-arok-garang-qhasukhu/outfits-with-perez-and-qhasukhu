@@ -509,3 +509,19 @@ footer a:hover{color:#fff}
 .public-homepage .terms-card{background:#fffdfb;border-color:#e0d3d9}
 .public-homepage .terms-card h2{color:#142b4a}
 @media(max-width:900px){.public-homepage .site-header nav{background:#fffdfb}}
+
+
+/* Footer-only adjustment: deep yellow background and black text; preserve logo artwork */
+.public-homepage footer{
+  background:#d6a300;
+  border-top:4px solid #76243d;
+  color:#111;
+}
+.public-homepage footer :where(p,a,span,strong,small,b,em){
+  color:#111 !important;
+  text-shadow:none;
+}
+.public-homepage footer a:hover{color:#352116 !important}
+.public-homepage footer .footer-logo{
+  filter:none !important;
+}
