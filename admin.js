@@ -114,6 +114,21 @@ window.edit=edit;window.removeProduct=removeProduct;
 
 const tailoringStages=['submitted','under_review','awaiting_measurements','quoted','approved','deposit_pending','in_progress','ready','completed','delivered','declined'];
 let tailoringObjectUrls=[];
+function tailoringDetail(label,value,full=false){
+ const content=value===null||value===undefined||String(value).trim()===''?'Not provided':String(value);
+ return '<div class="tailor-detail'+(full?' full':'')+'"><b>'+esc(label)+'</b><span>'+esc(content)+'</span></div>';
+}
+function tailoringMeasurements(raw){
+ if(raw===null||raw===undefined||String(raw).trim()==='')return tailoringDetail('Body measurements','Not provided',true);
+ let parsed=null;
+ if(typeof raw==='object')parsed=raw;
+ else {try{parsed=JSON.parse(raw)}catch(_){}}
+ if(parsed&&typeof parsed==='object'&&!Array.isArray(parsed)){
+  const entries=Object.entries(parsed).filter(([,v])=>v!==null&&v!==undefined&&String(v).trim()!=='');
+  if(entries.length)return '<div class="tailor-detail full"><b>Body measurements</b><div class="tailor-measurements">'+entries.map(([k,v])=>'<div class="tailor-measurement"><strong>'+esc(titleCase(k.replaceAll('_',' ')))+':</strong> '+esc(v)+'</div>').join('')+'</div></div>';
+ }
+ return tailoringDetail('Body measurements',String(raw),true);
+}
 async function renderTailoring(){
  if(!cloud()||!$('tailoringRows'))return;
  tailoringObjectUrls.forEach(url=>URL.revokeObjectURL(url));
@@ -126,20 +141,21 @@ async function renderTailoring(){
   if(r.reference_image_url){
    const {data:file,error:e}=await window.OPQ_SUPABASE.storage.from('tailoring-references').download(r.reference_image_url);
    if(!e&&file){
-    const localUrl=URL.createObjectURL(file);
-    tailoringObjectUrls.push(localUrl);
-    preview='<br><a target="_blank" rel="noopener" href="'+esc(localUrl)+'"><img class="admin-thumb" src="'+esc(localUrl)+'" alt="Private customer reference"></a><br><small>Private reference image · available whenever the admin dashboard is open</small>';
-   }else{
-    console.warn('Could not load private tailoring reference image:',e);
-    preview='<br><small>Private image saved; preview could not be loaded. Check storage access.</small>';
-   }
+    const localUrl=URL.createObjectURL(file);tailoringObjectUrls.push(localUrl);
+    preview='<a target="_blank" rel="noopener" href="'+esc(localUrl)+'"><img class="tailor-reference-image" src="'+esc(localUrl)+'" alt="Customer reference image"></a><small>Private customer reference image</small>';
+   }else{console.warn('Could not load private tailoring reference image:',e);preview='<small>Private image saved; preview could not be loaded. Check storage access.</small>';}
   }
-  return '<tr><td><b>'+esc(r.reference_code)+'</b><br><small>'+new Date(r.created_at).toLocaleString()+'</small>'+(r.customer_updated_at?'<br><strong style="color:#9a773f">Customer corrected · '+new Date(r.customer_updated_at).toLocaleString()+'</strong>':'')+'</td><td><b>'+esc(r.customer_name||'Name not supplied')+'</b><br><small>'+esc(r.customer_email||'Email unavailable')+'</small><br><small>'+esc(r.customer_phone||'Phone unavailable')+'</small><br><small>'+esc(r.country)+'</small></td><td><b>'+esc(r.garment_type)+'</b><br><small>'+esc(r.fabric)+' · '+esc(r.colour)+'</small><br><small>'+esc(r.style_preferences)+'</small>'+preview+'<br><small>'+esc(r.measurements)+'</small><br><small>'+esc(r.special_instructions)+'</small></td><td><select id="tailor-status-'+r.id+'">'+tailoringStages.map(x=>'<option value="'+x+'" '+(x===r.status?'selected':'')+'>'+titleCase(x)+'</option>').join('')+'</select></td><td><select id="tailor-deposit-'+r.id+'">'+['unpaid','pending','paid'].map(x=>'<option value="'+x+'" '+(x===r.deposit_status?'selected':'')+'>'+titleCase(x)+'</option>').join('')+'</select><br><small>30% / 70%</small></td><td><textarea id="tailor-note-'+r.id+'" rows="2">'+esc(r.admin_note||'')+'</textarea><hr><label style="display:block;font-size:10px">Customer WhatsApp message</label><textarea id="tailor-message-'+r.id+'" rows="3" placeholder="Write the message the customer should see…">'+esc(r.customer_message||'')+'</textarea><small>'+(r.customer_message_sent_at?'Last sent: '+new Date(r.customer_message_sent_at).toLocaleString():'Not yet sent')+'</small><br><button type="button" onclick="sendTailoringWhatsApp(\''+r.id+'\')">Save & open WhatsApp</button> '+(r.customer_message_sent_at?'<button type="button" onclick="markTailoringMessageSent(\''+r.id+'\')">Mark sent again</button>':'<button type="button" onclick="markTailoringMessageSent(\''+r.id+'\')">Mark as sent</button>')+'</td><td><button onclick="saveTailoring(\''+r.id+'\')">Save request</button>'+(['completed','delivered'].includes(r.status)&&!r.archived_at?'<br><button class="archive-action" onclick="archiveTailoringAdmin(\''+r.id+'\')">Archive request</button>':'')+'</td></tr>';
+  const customer='<div class="tailor-customer"><strong>'+esc(r.customer_name||'Name not supplied')+'</strong><span>'+esc(r.customer_email||'Email unavailable')+'</span><span>'+esc(r.customer_phone||'Phone unavailable')+'</span><span>'+esc(r.country||'Country not supplied')+'</span></div>';
+  const details='<div class="tailor-details">'+tailoringDetail('Garment',r.garment_type)+tailoringDetail('Fabric',r.fabric)+tailoringDetail('Colour',r.colour)+tailoringDetail('Preferred completion',r.desired_completion_date?new Date(r.desired_completion_date+'T00:00:00').toLocaleDateString():'Not specified')+tailoringDetail('Style preferences',r.style_preferences,true)+tailoringMeasurements(r.measurements)+tailoringDetail('Special instructions',r.special_instructions,true)+(preview?'<div class="tailor-detail full"><b>Reference image</b>'+preview+'</div>':'')+'</div>';
+  const ref='<b>'+esc(r.reference_code)+'</b><br><span>'+new Date(r.created_at).toLocaleString()+'</span>'+(r.customer_updated_at?'<br><strong style="color:#8a6500">Customer corrected · '+new Date(r.customer_updated_at).toLocaleString()+'</strong>':'');
+  const workflow='<div class="tailor-workflow"><label>Status</label><select id="tailor-status-'+r.id+'">'+tailoringStages.map(x=>'<option value="'+x+'" '+(x===r.status?'selected':'')+'>'+titleCase(x)+'</option>').join('')+'</select><label>Deposit status</label><select id="tailor-deposit-'+r.id+'">'+['unpaid','pending','paid'].map(x=>'<option value="'+x+'" '+(x===r.deposit_status?'selected':'')+'>'+titleCase(x)+'</option>').join('')+'</select><small>Deposit / balance: '+esc(r.deposit_percent??30)+'% / '+esc(r.balance_percent??70)+'%</small></div>';
+  const messages='<div class="tailor-workflow"><label>Private admin note</label><textarea id="tailor-note-'+r.id+'" rows="3" placeholder="Internal notes…">'+esc(r.admin_note||'')+'</textarea><label>Message to customer</label><textarea id="tailor-message-'+r.id+'" rows="4" placeholder="Write the message the customer should see…">'+esc(r.customer_message||'')+'</textarea><small>'+(r.customer_message_sent_at?'Last sent: '+new Date(r.customer_message_sent_at).toLocaleString():'Not yet sent')+'</small><br><button type="button" onclick="sendTailoringWhatsApp(\''+r.id+'\')">Save & open WhatsApp</button> <button type="button" onclick="markTailoringMessageSent(\''+r.id+'\')">'+(r.customer_message_sent_at?'Mark sent again':'Mark as sent')+'</button></div>';
+  return '<tr class="tailoring-request-row"><td>'+ref+'</td><td>'+customer+'</td><td>'+details+'</td><td>'+workflow+'</td><td>'+messages+'</td><td class="tailor-actions"><button onclick="saveTailoring(\''+r.id+'\')">Save request</button>'+(['completed','delivered'].includes(r.status)?'<br><button class="archive-action" onclick="archiveTailoringAdmin(\''+r.id+'\')">Archive request</button>':'')+'</td></tr>';
  }));
  $('tailoringRows').innerHTML=html.join('');
  const archivedRows=$('archivedTailoringRows');
  if(archivedRows) archivedRows.innerHTML=archived.map(r=>'<tr><td><b>'+esc(r.reference_code)+'</b></td><td>'+esc(r.customer_name||'')+'</td><td>'+esc(r.garment_type)+'</td><td>'+new Date(r.archived_at).toLocaleString()+'</td><td><button onclick="restoreTailoringRequest(\''+r.id+'\')">Restore to active</button></td></tr>').join('')||'<tr><td colspan="5">No archived requests.</td></tr>';
- $('tailoringAdminMessage').textContent=active.length+' active request(s); '+archived.length+' archived. Archive completed or delivered requests only.';
+ $('tailoringAdminMessage').textContent=active.length+' active request(s); '+archived.length+' archived. Customer details are now grouped into readable cards. Archive completed or delivered requests only.';
 }
 window.saveTailoring=async id=>{try{const status=$('tailor-status-'+id).value;const {error}=await window.OPQ_SUPABASE.from('tailoring_requests').update({status,deposit_status:$('tailor-deposit-'+id).value,admin_note:$('tailor-note-'+id).value.trim(),customer_message:$('tailor-message-'+id).value.trim(),customer_message_sent_at:null}).eq('id',id);if(error)throw error;$('tailoringAdminMessage').textContent='Tailoring request and message draft saved. The customer sees the message only after you mark it sent.';await renderTailoring();}catch(e){$('tailoringAdminMessage').textContent='Could not update: '+e.message}};
 window.archiveTailoringAdmin=async id=>{try{const {error}=await window.OPQ_SUPABASE.from('tailoring_requests').update({archived_at:new Date().toISOString()}).eq('id',id).in('status',['completed','delivered']).is('archived_at',null);if(error)throw error;await renderTailoring();}catch(e){$('tailoringAdminMessage').textContent='Could not archive: '+e.message}};
