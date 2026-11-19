@@ -212,3 +212,108 @@ footer p,footer a,.footer-credit{color:#fff;font-weight:700}
 @media(max-width:900px){
  .site-header nav{background:#fffefa}
 }
+
+
+/* P&Q public storefront palette refinement: navy + maroon */
+:root{
+  --ink:#142b4a;
+  --muted:#46566b;
+  --cream:#f3edf0;
+  --paper:#fffdfb;
+  --gold:#b18a54;
+  --line:#e3d8dc;
+  --white:#fff;
+  --shadow:0 22px 60px rgba(20,43,74,.13);
+}
+body{color:#142b4a;background:#fffdfb}
+.announcement{background:#142b4a;color:#fff}
+.site-header{background:rgba(255,253,251,.97);border-bottom-color:#e3d8dc}
+.site-header nav a,.cart-btn,.brand strong,.brand small{color:#142b4a}
+.site-header nav a:hover,.text-link:hover{color:#76243d}
+.cart-btn span{background:#76243d;color:#fff}
+.hero{background:linear-gradient(115deg,#f3edf0 0%,#fffdfb 58%,#e8edf4 100%)}
+h1,h2,h3,h4,h5,h6,.section h2,.hero h1,.tailoring h2,.about h2,
+.contact h2,.modal-copy h2,.drawer-head h3,.product-info h3,
+.cart-row h4,.terms-card h2{color:#142b4a}
+.hero h1 em,.tailoring h2 em,.regional h2 em{color:#76243d}
+.eyebrow{color:#76243d}
+.hero-text,.hero-proof,p,li,small,label,summary,.muted,.payment-note,
+.product-meta,.about p:not(.eyebrow):not(.quote),
+.contact p:not(.eyebrow),.faq-grid details p,.terms-note{color:#293d56}
+.btn-dark{background:#142b4a!important;border-color:#142b4a!important;color:#fff!important}
+.btn-dark:hover{background:#76243d!important;border-color:#76243d!important}
+.btn-gold{background:#76243d;color:#fff;border-color:#76243d}
+.btn-gold:hover{background:#5d1b30;color:#fff}
+.btn-outline-light{background:transparent;color:#142b4a;border-color:#142b4a}
+.btn-outline-light:hover{background:#142b4a;color:#fff}
+.trust-strip{background:#fffdfb;border-color:#e3d8dc}
+.trust-strip b{color:#76243d}
+.trust-strip span,.trust-strip small{color:#293d56}
+.section{background:#fffdfb}
+.category-tile{border-color:rgba(20,43,74,.2)}
+.filter{color:#142b4a;border-color:#c9d1dc}
+.filter.active{background:#76243d;color:#fff;border-color:#76243d}
+.search{border-color:#142b4a}
+.search input{color:#142b4a}
+.product-image{background:#e8edf4}
+.product-info h3,.product-meta,.price{color:#142b4a}
+.product-rating,.review-stars{color:#76243d}
+.badge{background:#fff;color:#142b4a}
+.quick{background:#76243d;color:#fff}
+.tailoring{
+ background:linear-gradient(125deg,#142b4a,#203d61);
+ color:#fff;border:1px solid #a9875a;
+ box-shadow:0 20px 55px rgba(20,43,74,.18)
+}
+.tailoring .eyebrow{color:#e7c9d2}
+.tailoring h2,.tailoring h2 em{color:#fff}
+.tailoring-copy>p,.tailoring li span{color:#e1e8f0}
+.tailoring li{border-color:rgba(255,255,255,.2)}
+.tailoring li b{color:#fff}
+.tailoring .btn-light{background:#76243d;color:#fff;border-color:#76243d}
+.tailoring .btn-light:hover{background:#5d1b30}
+.about{background:#f3edf0}
+.about-number{color:#76243d;opacity:.82}
+.about p:not(.eyebrow):not(.quote){color:#293d56}
+.quote{color:#76243d}
+.regional{
+ background:#76243d;color:#fff;
+ border-top:1px solid #5d1b30;border-bottom:1px solid #5d1b30
+}
+.regional .eyebrow,.regional h2,.regional h2 em,
+.regional p:not(.eyebrow),.region-list{color:#fff}
+.reviews-section{background:#f3edf0}
+.review-card{background:#fffdfb;border-color:#e0d3d9}
+.review-card p,.review-card b{color:#142b4a}
+.review-card small{color:#526176}
+.faq-section{background:#fffdfb}
+.faq-grid summary,.faq-assistant b,.faq-assistant label{color:#142b4a}
+.faq-grid details p,.faq-assistant .muted{color:#293d56}
+.faq-grid details{border-color:#e3d8dc}
+.faq-assistant{background:#f3edf0;border-color:#e0d3d9}
+.faq-assistant input{color:#142b4a;border-color:#c9b9c1}
+.contact{background:#fffdfb}
+.contact-cards a{background:#f3edf0;border-color:#dfd2d9;color:#142b4a}
+.contact-cards a:last-child{background:#76243d;border-color:#76243d;color:#fff}
+.contact-cards small,.contact-cards strong{color:inherit}
+footer{
+ background:#10243d;
+ border-top:4px solid #76243d;
+ color:#fff;
+}
+footer p{color:#dbe4ef;font-weight:600}
+footer a{color:#f0cbd6;font-weight:800}
+footer a:hover{color:#fff}
+.footer-credit{color:#e4c58f;font-weight:700}
+.footer-credit strong{color:#f0cbd6;font-weight:900}
+.footer-brand strong{color:#fff}
+.footer-brand small{color:#cbd7e5}
+.modal,.cart-drawer{background:#fffdfb;color:#142b4a}
+.modal-copy h2,.drawer-head h3,.cart-row h4,.drawer-foot strong{color:#142b4a}
+.modal-copy p,.cart-row small,.drawer-foot span{color:#293d56}
+.size-row button,.qty button{color:#142b4a}
+.payment-note{color:#46566b}
+.terms-card{background:#fffdfb;border-color:#e0d3d9}
+.terms-card h2{color:#142b4a}
+.terms-note{color:#293d56!important}
+@media(max-width:900px){.site-header nav{background:#fffdfb}}
