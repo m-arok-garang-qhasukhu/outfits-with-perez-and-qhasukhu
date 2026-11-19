@@ -108,3 +108,6 @@ footer{background:#08182b;border-top:3px solid #c6a365;padding:32px 7vw}
 }
 
 .product-rating{margin-top:7px;font-size:11px;color:#9a773f;letter-spacing:.02em;min-height:15px}.product-rating[aria-label]{display:block}
+
+/* P&Q creator credit */
+.footer-credit{display:inline-block;margin-top:7px;color:#c9c1b4;line-height:1.7}.footer-credit strong{color:#fff;font-weight:600}
