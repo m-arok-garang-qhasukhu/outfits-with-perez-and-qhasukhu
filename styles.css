@@ -416,3 +416,96 @@ footer a:hover{color:#fff}
 .public-homepage .drawer-foot span{color:#5b4a3d}
 .public-homepage .terms-card{background:#fffaf4;border-color:#e4d5c5}
 @media(max-width:900px){.public-homepage .site-header nav{background:#fffaf4}}
+
+
+/* Correction: keep the established navy + maroon site palette; brown only in the top hero display */
+.public-homepage{background:#fffdfb;color:#142b4a}
+.public-homepage .announcement{background:#142b4a;color:#fff}
+.public-homepage .site-header{background:rgba(255,253,251,.97);border-bottom-color:#e3d8dc}
+.public-homepage .site-header nav a,.public-homepage .cart-btn,
+.public-homepage .brand strong,.public-homepage .brand small{color:#142b4a}
+.public-homepage .site-header nav a:hover{color:#76243d}
+.public-homepage .cart-btn span{background:#76243d;color:#fff}
+
+/* The only brown area is the large top/hero display */
+.public-homepage .hero{
+ background:linear-gradient(118deg,#4a2d20 0%,#795238 55%,#bd8a55 100%);
+ color:#fff;
+}
+.public-homepage .hero h1,.public-homepage .hero h1 em{color:#fff}
+.public-homepage .hero .eyebrow{color:#f0d5b8}
+.public-homepage .hero .hero-text,.public-homepage .hero .hero-proof{color:#f7eee6}
+.public-homepage .hero .btn-gold{background:#bd8a55;border-color:#bd8a55;color:#24170f}
+.public-homepage .hero .btn-outline-light{background:transparent;color:#fff;border-color:#fff}
+.public-homepage .hero .btn-outline-light:hover{background:#fff;color:#563522}
+
+/* Restore maroon and navy across the rest of the public website */
+.public-homepage h1,.public-homepage h2,.public-homepage h3,
+.public-homepage h4,.public-homepage h5,.public-homepage h6,
+.public-homepage .section h2,.public-homepage .tailoring h2,
+.public-homepage .about h2,.public-homepage .contact h2{color:#142b4a}
+.public-homepage .eyebrow{color:#76243d}
+.public-homepage p,.public-homepage li,.public-homepage small,
+.public-homepage label,.public-homepage summary,.public-homepage .muted,
+.public-homepage .product-meta,.public-homepage .about p:not(.eyebrow):not(.quote),
+.public-homepage .contact p:not(.eyebrow),.public-homepage .faq-grid details p{color:#293d56}
+.public-homepage .btn-dark{background:#142b4a!important;border-color:#142b4a!important;color:#fff!important}
+.public-homepage .btn-dark:hover{background:#76243d!important;border-color:#76243d!important}
+.public-homepage .btn-gold{background:#76243d;border-color:#76243d;color:#fff}
+.public-homepage .btn-outline-light{color:#142b4a;border-color:#142b4a}
+.public-homepage .trust-strip,.public-homepage .section,
+.public-homepage .shop-section,.public-homepage .contact,
+.public-homepage .faq-section{background:#fffdfb;border-color:#e3d8dc}
+.public-homepage .trust-strip b,.public-homepage .product-rating,
+.public-homepage .review-stars{color:#76243d}
+.public-homepage .trust-strip span,.public-homepage .trust-strip small{color:#293d56}
+.public-homepage .category-tile{border-color:rgba(20,43,74,.2)}
+.public-homepage .filter{color:#142b4a;border-color:#c9d1dc}
+.public-homepage .filter.active{background:#76243d;border-color:#76243d;color:#fff}
+.public-homepage .search{border-color:#142b4a}
+.public-homepage .search input{color:#142b4a}
+.public-homepage .product-image{background:#e8edf4}
+.public-homepage .product-info h3,.public-homepage .price{color:#142b4a}
+.public-homepage .quick{background:#76243d;color:#fff}
+.public-homepage .tailoring{background:linear-gradient(125deg,#142b4a,#203d61);border:1px solid #a9875a;color:#fff}
+.public-homepage .tailoring .eyebrow{color:#e7c9d2}
+.public-homepage .tailoring h2,.public-homepage .tailoring h2 em{color:#fff}
+.public-homepage .tailoring-copy>p,.public-homepage .tailoring li span{color:#e1e8f0}
+.public-homepage .tailoring li{border-color:rgba(255,255,255,.2)}
+.public-homepage .tailoring li b{color:#fff}
+.public-homepage .tailoring .btn-light{background:#76243d;color:#fff;border-color:#76243d}
+.public-homepage .about,.public-homepage .reviews-section{background:#f3edf0}
+.public-homepage .about-number{color:#76243d}
+.public-homepage .quote{color:#76243d}
+.public-homepage .regional{background:#76243d;color:#fff;border-color:#5d1b30}
+.public-homepage .regional .eyebrow,.public-homepage .regional h2,
+.public-homepage .regional h2 em,.public-homepage .regional p:not(.eyebrow),
+.public-homepage .region-list{color:#fff}
+.public-homepage .review-card{background:#fffdfb;border-color:#e0d3d9}
+.public-homepage .review-card p,.public-homepage .review-card b{color:#142b4a}
+.public-homepage .review-card small{color:#526176}
+.public-homepage .faq-grid summary,.public-homepage .faq-assistant b,
+.public-homepage .faq-assistant label{color:#142b4a}
+.public-homepage .faq-grid details{border-color:#e3d8dc}
+.public-homepage .faq-assistant{background:#f3edf0;border-color:#e0d3d9}
+.public-homepage .faq-assistant input{color:#142b4a;border-color:#c9b9c1}
+.public-homepage .contact-cards a{background:#f3edf0;border-color:#dfd2d9;color:#142b4a}
+.public-homepage .contact-cards a:last-child{background:#76243d;border-color:#76243d;color:#fff}
+
+/* Footer remains navy; non-logo text gets distinct, coordinated colours */
+.public-homepage footer{background:#10243d;border-top:4px solid #76243d;color:#fff}
+.public-homepage footer p{color:#dbe4ef;font-weight:600}
+.public-homepage footer a{color:#f0cbd6;font-weight:800}
+.public-homepage footer a:hover{color:#fff}
+.public-homepage footer .footer-credit{color:#e4c58f;font-weight:700}
+.public-homepage footer .footer-credit strong{color:#f0cbd6;font-weight:900}
+.public-homepage footer .footer-brand{color:#fff}
+.public-homepage footer .footer-logo{filter:none}
+.public-homepage .modal,.public-homepage .cart-drawer{background:#fffdfb;color:#142b4a}
+.public-homepage .modal-copy h2,.public-homepage .drawer-head h3,
+.public-homepage .cart-row h4,.public-homepage .drawer-foot strong{color:#142b4a}
+.public-homepage .modal-copy p,.public-homepage .cart-row small,
+.public-homepage .drawer-foot span{color:#293d56}
+.public-homepage .terms-card{background:#fffdfb;border-color:#e0d3d9}
+.public-homepage .terms-card h2{color:#142b4a}
+@media(max-width:900px){.public-homepage .site-header nav{background:#fffdfb}}
