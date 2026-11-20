@@ -554,3 +554,6 @@ footer a:hover{color:#fff}
   color:#d4a017 !important;
   text-shadow:0 0 1px #9a6b00;
 }
+
+/* P&Q inventory controls */
+.stock-badge{display:inline-block;margin:7px 8px 0 0;padding:5px 8px;border-radius:5px;background:#edf2f7;color:#142b4a;font-size:11px;font-weight:700}.stock-badge.low{background:#fff0cf;color:#765000}.stock-badge.out{background:#f8e2e2;color:#8b2020}.product-card .quick:disabled{opacity:.55;cursor:not-allowed}
