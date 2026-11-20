@@ -582,3 +582,7 @@ footer a:hover{color:#fff}
 
 /* Product sharing action */
 .share-product-btn{background:#fff!important;color:#142b4a!important;border:1px solid #c9d1dc!important}.share-product-btn:hover{background:#f3edf0!important;border-color:#76243d!important;color:#76243d!important}
+
+
+/* Storefront price range filter */
+.price-range{display:flex;align-items:center;gap:9px;color:#142b4a;font-size:12px;font-weight:800}.price-range>span{display:flex;align-items:center;gap:7px}.price-range input{width:112px;min-width:0;padding:10px 9px;border:1px solid #c9d1dc;border-radius:8px;background:#fffdfb;color:#142b4a;font:inherit;font-weight:700}.price-range input:focus{outline:2px solid #76243d;outline-offset:1px}.clear-price-filter{padding:9px 12px;border:1px solid #76243d;border-radius:8px;background:#fff;color:#76243d;font-size:11px;font-weight:800;cursor:pointer}.clear-price-filter:hover{background:#76243d;color:#fff}@media(max-width:640px){.price-range{width:100%;justify-content:space-between}.price-range>span{flex:1}.price-range input{width:100%;max-width:140px}.clear-price-filter{align-self:flex-start}}

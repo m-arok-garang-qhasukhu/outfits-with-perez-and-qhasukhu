@@ -21,7 +21,7 @@ async function loadCatalog(){
 }
 function saveProducts(p){localStorage.setItem(KEY,JSON.stringify(p))}
 if(!localStorage.getItem(KEY))saveProducts(seed);
-let state={filter:'All',search:'',sort:'featured',inStockOnly:false}, cart=JSON.parse(localStorage.getItem(CART)||'[]');
+let state={filter:'All',search:'',sort:'featured',inStockOnly:false,minPrice:'',maxPrice:''}, cart=JSON.parse(localStorage.getItem(CART)||'[]');
 let savedProducts=[];try{savedProducts=JSON.parse(localStorage.getItem(SAVED)||'[]').map(String)}catch{savedProducts=[]}
 let recentlyViewed=[];try{recentlyViewed=JSON.parse(localStorage.getItem(RECENT)||'[]').map(String).slice(0,4)}catch{recentlyViewed=[]}
 function saveFavorites(){localStorage.setItem(SAVED,JSON.stringify(savedProducts));const count=document.getElementById('savedCount');if(count)count.textContent=savedProducts.length;}
@@ -39,7 +39,8 @@ function render(){
   const categoryMatch=state.filter==='All'||(state.filter==='New'?!!x.new:state.filter==='Saved'?savedProducts.includes(String(x.id)):x.category===state.filter);
   const searchMatch=!state.search||(x.name+' '+x.category+' '+(x.description||'')).toLowerCase().includes(state.search.toLowerCase());
   const known=x.stockQuantity!==null&&x.stockQuantity!==undefined;
-  return categoryMatch&&searchMatch&&(!state.inStockOnly||(known&&Number(x.stockQuantity)>0));
+  const price=Number(x.price)||0;const aboveMin=state.minPrice===''||price>=Number(state.minPrice);const belowMax=state.maxPrice===''||price<=Number(state.maxPrice);
+  return categoryMatch&&searchMatch&&aboveMin&&belowMax&&(!state.inStockOnly||(known&&Number(x.stockQuantity)>0));
  });
  if(state.sort==='price-asc')p.sort((a,b)=>Number(a.price)-Number(b.price));
  else if(state.sort==='price-desc')p.sort((a,b)=>Number(b.price)-Number(a.price));
@@ -56,6 +57,8 @@ document.querySelectorAll('.category-tile').forEach(b=>b.onclick=()=>{document.q
 document.getElementById('searchInput').oninput=e=>{state.search=e.target.value;render()};
 document.getElementById('sortSelect')?.addEventListener('change',e=>{state.sort=e.target.value;render()});
 document.getElementById('inStockOnly')?.addEventListener('change',e=>{state.inStockOnly=e.target.checked;render()});
+['minPrice','maxPrice'].forEach(id=>document.getElementById(id)?.addEventListener('input',e=>{state[id==='minPrice'?'minPrice':'maxPrice']=e.target.value;const min=Number(state.minPrice),max=Number(state.maxPrice);const maxInput=document.getElementById('maxPrice');if(state.minPrice!==''&&state.maxPrice!==''&&min>max){maxInput.setCustomValidity('Maximum price must be at least the minimum price.')}else{maxInput.setCustomValidity('')}render()}));
+document.getElementById('clearPriceFilter')?.addEventListener('click',()=>{state.minPrice='';state.maxPrice='';document.getElementById('minPrice').value='';document.getElementById('maxPrice').value='';document.getElementById('maxPrice').setCustomValidity('');render()});
 document.getElementById('menuBtn').onclick=()=>document.getElementById('mainNav').classList.toggle('open');
 
 function toggleFavorite(id){id=String(id);savedProducts=savedProducts.includes(id)?savedProducts.filter(x=>x!==id):[...savedProducts,id];saveFavorites();render();}

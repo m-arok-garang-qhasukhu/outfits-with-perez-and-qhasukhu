@@ -69,13 +69,17 @@
           <button class="filter" data-filter="Saved">♥ Saved <span id="savedCount">0</span></button>
         </div>
         <label class="search"><span>⌕</span><input id="searchInput" type="search" placeholder="Search the collection…"></label>
-        <div class="catalog-refinements">
+        <div class="catalog-refinements" id="catalog-refinements">
           <label class="catalog-sort">Sort by
             <select id="sortSelect" aria-label="Sort products">
               <option value="featured">Featured</option><option value="price-asc">Price: low to high</option><option value="price-desc">Price: high to low</option><option value="rating">Top rated</option><option value="name">Name: A to Z</option>
             </select>
           </label>
           <label class="stock-only"><input id="inStockOnly" type="checkbox"> In-stock items only</label>
+          <label class="price-range">Price range
+            <span><input id="minPrice" type="number" min="0" step="100" inputmode="numeric" placeholder="Min KSh" aria-label="Minimum price"><span aria-hidden="true">–</span><input id="maxPrice" type="number" min="0" step="100" inputmode="numeric" placeholder="Max KSh" aria-label="Maximum price"></span>
+          </label>
+          <button class="clear-price-filter" id="clearPriceFilter" type="button">Clear price</button>
         </div>
         <p class="catalog-result-count" id="catalogResultCount" aria-live="polite"></p>
       </div>
