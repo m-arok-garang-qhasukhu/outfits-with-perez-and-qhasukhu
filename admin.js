@@ -41,9 +41,33 @@ async function getProducts(){
   return rows.map(x=>({id:x.id,name:x.name,price:x.price_kes,category:x.category,sizes:normalizeProductSizes(x.sizes),description:x.description||'',image:x.image_url||'',new:x.is_new,featured:x.featured,available:x.available,stockQuantity:x.stock_quantity,lowStockThreshold:x.low_stock_threshold}));
 }
 
+let productAdminPage=1;
+const productAdminPageSize=25;
 async function render(){
-  const p=await getProducts();$('count').textContent=`(${p.length})`;
-  $('rows').innerHTML=p.map(x=>`<tr><td>${x.image?`<img class="admin-thumb" src="${esc(x.image)}" alt="">`:'—'}</td><td><b>${esc(x.name)}</b><br><small>${x.new?'New • ':''}${esc(x.sizes||'Custom sizing')}</small></td><td>${esc(x.category)}</td><td>${money(x.price)}</td><td><span class="status ${x.available!==false?'available':'unavailable'}">${x.available!==false?'Available':'Unavailable'}</span></td><td>${x.stockQuantity===null||x.stockQuantity===undefined?'<span class="status">Not tracked</span>':x.stockQuantity===0?'<span class="status unavailable">Out of stock</span>':x.stockQuantity<=Number(x.lowStockThreshold??3)?`<span class="status unavailable">Low: ${x.stockQuantity}</span>`:`<span class="status available">${x.stockQuantity} in stock</span>`}</td><td><div class="actions"><button onclick="edit('${String(x.id)}')">Edit</button><button class="danger" onclick="removeProduct('${String(x.id)}')">Delete</button></div></td></tr>`).join(''); await renderOrders();await renderTailoring();await renderCancellations();await renderReviews()}
+ const p=await getProducts(),term=($('productQuickSearch')?.value||'').trim().toLowerCase();
+ const filtered=p.filter(x=>!term||[x.name,x.category,x.sizes,x.description,String(x.price),x.available?'available':'unavailable'].some(v=>String(v||'').toLowerCase().includes(term)));
+ const totalPages=Math.max(1,Math.ceil(filtered.length/productAdminPageSize));productAdminPage=Math.min(Math.max(1,productAdminPage),totalPages);
+ const start=(productAdminPage-1)*productAdminPageSize,visible=filtered.slice(start,start+productAdminPageSize);
+ $('count').textContent=term?'('+filtered.length+' matching / '+p.length+' total)':'('+p.length+' total)';
+ $('rows').innerHTML=visible.map(x=>{
+ const image=x.image?'<img class="admin-thumb" src="'+esc(x.image)+'" alt="">':'—';
+ const inventory=x.stockQuantity===null||x.stockQuantity===undefined?'<span class="status">Not tracked</span>':x.stockQuantity===0?'<span class="status unavailable">Out of stock</span>':x.stockQuantity<=Number(x.lowStockThreshold??3)?'<span class="status unavailable">Low: '+x.stockQuantity+'</span>':'<span class="status available">'+x.stockQuantity+' in stock</span>';
+ return '<tr><td>'+image+'</td><td><b>'+esc(x.name)+'</b><br><small>'+(x.new?'New • ':'')+esc(x.sizes||'Custom sizing')+'</small></td><td>'+esc(x.category)+'</td><td>'+money(x.price)+'</td><td><span class="status '+(x.available!==false?'available':'unavailable')+'">'+(x.available!==false?'Available':'Unavailable')+'</span></td><td>'+inventory+'</td><td><div class="actions"><button onclick="edit(\''+String(x.id)+'\')">Edit</button><button class="danger" onclick="removeProduct(\''+String(x.id)+'\')">Delete</button></div></td></tr>';
+ }).join('')||'<tr><td colspan="7">No products match your search.</td></tr>';
+ renderProductAdminPagination(totalPages,filtered.length,start,visible.length);
+ await renderOrders();await renderTailoring();await renderCancellations();await renderReviews()
+}
+function renderProductAdminPagination(totalPages,total,start,shown){
+ const host=$('productAdminPagination');if(!host)return;
+ $('productPageSummary').textContent=total?'Showing '+(start+1)+'–'+(start+shown)+' of '+total:'No products to display';
+ if(totalPages<=1){host.innerHTML='';host.hidden=true;return;}host.hidden=false;
+ const button=(label,page,disabled,current)=>'<button type="button" class="product-admin-page '+(current?'active':'')+'" data-page="'+page+'" '+(disabled?'disabled':'')+'>' +label+'</button>';
+ const pages=[];for(let n=1;n<=totalPages;n++)if(n===1||n===totalPages||Math.abs(n-productAdminPage)<=1)pages.push(n);
+ let markup=button('Previous',productAdminPage-1,productAdminPage===1,false),previous=0;
+ for(const n of pages){if(previous&&n-previous>1)markup+='<span aria-hidden="true">…</span>';markup+=button(String(n),n,false,n===productAdminPage);previous=n;}
+ markup+=button('Next',productAdminPage+1,productAdminPage===totalPages,false);host.innerHTML=markup;
+ host.querySelectorAll('button[data-page]').forEach(b=>b.addEventListener('click',()=>{productAdminPage=Number(b.dataset.page);render();$('productsPanel').scrollIntoView({behavior:'smooth',block:'start'})}));
+}
 
 const orderStatusOptions=['pending','confirmed','awaiting_payment','in_progress','processing','ready','out_for_delivery','delivered','cancelled','paid'];
 const titleCase=s=>String(s||'').replaceAll('_',' ').replace(/\b\w/g,c=>c.toUpperCase());
@@ -302,6 +326,7 @@ async function init(){
 }
 $('loginForm').onsubmit=async e=>{e.preventDefault();if(!cloud()){ $('loginMsg').textContent='Cloud connection unavailable. Please contact the site administrator.'; return; } const {error}=await window.OPQ_SUPABASE.auth.signInWithPassword({email:$('loginEmail').value.trim(),password:$('loginPassword').value});$('loginMsg').textContent=error?error.message:'Signed in. Checking admin access…'};
 $('logoutBtn').onclick=()=>window.OPQ_SUPABASE.auth.signOut();$('refreshDashboard')?.addEventListener('click',refreshDashboardOverview);$('adminSearch')?.addEventListener('input',e=>{const q=e.target.value.trim().toLowerCase();document.querySelectorAll('.admin-table tbody tr').forEach(row=>{row.hidden=!!q&&!row.textContent.toLowerCase().includes(q)})});document.querySelectorAll('.admin-nav a').forEach(a=>a.addEventListener('click',()=>{document.querySelectorAll('.admin-nav a').forEach(x=>x.classList.remove('active'));a.classList.add('active')}));
+$('productQuickSearch')?.addEventListener('input',()=>{productAdminPage=1;render()});
 init();
 
 // Section-level filters keep the global dashboard search available as well.
