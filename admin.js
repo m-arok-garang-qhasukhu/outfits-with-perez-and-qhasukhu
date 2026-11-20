@@ -109,7 +109,7 @@ $('image').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileR
 $('productForm').onsubmit=async e=>{e.preventDefault();try{const id=$('productId').value;const file=$('image').files[0];let image=currentImage;if(file)image=await uploadImage(file);await saveProduct({name:$('name').value.trim(),price:Number($('price').value),category:$('category').value,sizes:$('sizes').value.trim(),description:$('description').value.trim(),image,new:$('new').checked,featured:$('featured').checked,available:$('available').checked,stockQuantity:$('stockQuantity').value===''?null:Number($('stockQuantity').value),lowStockThreshold:Number($('lowStockThreshold').value||3)},id);reset();await render();alert('Product saved successfully.')}catch(err){console.error(err);alert('Could not save product: '+err.message)}};
 
 async function edit(id){const p=await getProducts();const x=p.find(a=>String(a.id)===String(id));if(!x)return;$('productId').value=x.id;$('name').value=x.name;$('price').value=x.price;$('category').value=x.category;$('sizes').value=x.sizes||'';$('description').value=x.description||'';$('available').checked=x.available!==false;$('stockQuantity').value=x.stockQuantity===null||x.stockQuantity===undefined?'':x.stockQuantity;$('lowStockThreshold').value=x.lowStockThreshold??3;$('new').checked=!!x.new;$('featured').checked=!!x.featured;currentImage=x.image||'';$('preview').src=currentImage;$('preview').style.display=currentImage?'block':'none';$('formTitle').textContent='Edit product';$('saveBtn').textContent='Update product';window.scrollTo({top:0,behavior:'smooth'})}
-async function removeProduct(id){if(!confirm('Delete this product?'))return;try{if(cloud()){const {error}=await window.OPQ_SUPABASE.from('products').delete().eq('id',id);if(error)throw error}else save(get().filter(x=>String(x.id)!==String(id)));await render();await refreshDashboardOverview()}catch(err){alert('Could not delete product: '+err.message)}}
+async function removeProduct(id){if(!confirm('Delete this product?'))return;try{if(cloud()){const {error}=await window.OPQ_SUPABASE.from('products').delete().eq('id',id);if(error)throw error}else save(get().filter(x=>String(x.id)!==String(id)));await render();await refreshDashboardOverview();setDefaultReportDates();await refreshBusinessReport()}catch(err){alert('Could not delete product: '+err.message)}}
 function reset(){$('productForm').reset();$('productId').value='';currentImage='';$('preview').style.display='none';$('formTitle').textContent='Add a product';$('saveBtn').textContent='Save product'}
 $('cancelBtn').onclick=reset;
 window.edit=edit;window.removeProduct=removeProduct;
@@ -171,6 +171,54 @@ async function renderCancellations(){if(!cloud()||!$('cancellationRows'))return;
 window.saveCancellation=async id=>{try{const decision=$('cancel-status-'+id).value;const {error}=await window.OPQ_SUPABASE.from('orders').update({cancellation_status:decision,cancellation_admin_note:$('cancel-note-'+id).value.trim(),cancellation_reviewed_at:new Date().toISOString(),...(decision==='approved'?{status:'cancelled'}:{})}).eq('id',id);if(error)throw error;await renderCancellations();$('cancellationAdminMessage').textContent='Cancellation decision saved. Payment/refund status was not changed.';}catch(e){$('cancellationAdminMessage').textContent='Could not save decision: '+e.message}};
 async function renderReviews(){if(!cloud()||!$('reviewRows'))return;const {data,error}=await window.OPQ_SUPABASE.from('product_reviews').select('id,product_id,order_item_id,tailoring_request_id,reviewer_name,rating,review_text,is_approved,created_at,products(name),tailoring_requests(reference_code,garment_type)').order('created_at',{ascending:false}).limit(150);if(error){$('reviewAdminMessage').textContent='Could not load reviews: '+error.message;return;} $('reviewRows').innerHTML=data.map(r=>{const subject=r.products?.name||(r.tailoring_requests?'Custom tailoring · '+r.tailoring_requests.garment_type+' ('+r.tailoring_requests.reference_code+')':'Review');return `<tr><td>${esc(subject)}</td><td>${r.rating}/5</td><td><b>${esc(r.reviewer_name)}</b><br>${esc(r.review_text)}</td><td>${r.is_approved?'Approved':'Pending'}</td><td><button onclick="moderateReview('${r.id}',${!r.is_approved})">${r.is_approved?'Unpublish':'Approve'}</button></td></tr>`}).join('')||'<tr><td colspan="5">No reviews submitted yet.</td></tr>';$('reviewAdminMessage').textContent=`${data.length} review(s).`}
 window.moderateReview=async(id,approved)=>{try{const {error}=await window.OPQ_SUPABASE.from('product_reviews').update({is_approved:approved}).eq('id',id);if(error)throw error;await renderReviews();}catch(e){$('reviewAdminMessage').textContent='Could not moderate review: '+e.message}};
+
+let businessReportOrders=[];
+function reportDateBounds(){
+ const start=$('reportStartDate')?.value||'0000-01-01';
+ const end=$('reportEndDate')?.value||'9999-12-31';
+ return {start,end};
+}
+async function refreshBusinessReport(){
+ if(!cloud())return;
+ const message=$('businessReportMessage');if(message)message.textContent='Preparing report…';
+ try{
+  const [ordersResult,tailoringResult]=await Promise.all([
+   window.OPQ_SUPABASE.from('orders').select('id,customer_name,status,payment_status,total_kes,created_at,archived_at').order('created_at',{ascending:false}).limit(500),
+   window.OPQ_SUPABASE.from('tailoring_requests').select('status,created_at').order('created_at',{ascending:false}).limit(500)
+  ]);
+  if(ordersResult.error)throw ordersResult.error;if(tailoringResult.error)throw tailoringResult.error;
+  const {start,end}=reportDateBounds();
+  if(start>end)throw new Error('The start date must be on or before the end date.');
+  const inRange=row=>{const date=String(row.created_at||'').slice(0,10);return date>=start&&date<=end;};
+  businessReportOrders=(ordersResult.data||[]).filter(inRange);
+  const tailoring=(tailoringResult.data||[]).filter(inRange);
+  const paid=businessReportOrders.filter(o=>o.payment_status==='paid');
+  const outstanding=businessReportOrders.filter(o=>['unpaid','pending','failed'].includes(o.payment_status));
+  const sum=rows=>rows.reduce((total,row)=>total+Number(row.total_kes||0),0);
+  $('reportOrderCount').textContent=businessReportOrders.length;
+  $('reportPaidRevenue').textContent=money(sum(paid));
+  $('reportOutstanding').textContent=money(sum(outstanding));
+  $('reportAverageOrder').textContent=money(businessReportOrders.length?sum(businessReportOrders)/businessReportOrders.length:0);
+  $('reportCompletedTailoring').textContent=tailoring.filter(r=>['completed','delivered'].includes(r.status)).length;
+  if(message)message.textContent='Report covers '+start+' to '+end+'. '+businessReportOrders.length+' orders and '+tailoring.length+' tailoring requests included. Data is limited to the latest 500 records in each list.';
+ }catch(e){if(message)message.textContent='Could not prepare report: '+e.message;console.warn(e);}
+}
+function exportBusinessReportCsv(){
+ if(!businessReportOrders.length){$('businessReportMessage').textContent='There are no orders in this date range to export.';return;}
+ const cell=value=>'"'+String(value??'').replace(/"/g,'""')+'"';
+ const rows=[['Order reference','Date','Customer','Order status','Payment status','Total (KSh)'],...businessReportOrders.map(o=>[String(o.id).slice(0,8).toUpperCase(),new Date(o.created_at).toLocaleString(),o.customer_name,o.status,o.payment_status,Number(o.total_kes||0)])];
+ const csv=rows.map(row=>row.map(cell).join(',')).join('\r\n');
+ const url=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));
+ const link=document.createElement('a');link.href=url;link.download='pq-orders-report-'+reportDateBounds().start+'-to-'+reportDateBounds().end+'.csv';document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url);
+}
+function setDefaultReportDates(){
+ const now=new Date(),today=now.toISOString().slice(0,10),monthStart=new Date(now.getFullYear(),now.getMonth(),1).toISOString().slice(0,10);
+ if($('reportStartDate')&&!$('reportStartDate').value)$('reportStartDate').value=monthStart;
+ if($('reportEndDate')&&!$('reportEndDate').value)$('reportEndDate').value=today;
+}
+$('runBusinessReport')?.addEventListener('click',refreshBusinessReport);
+$('exportBusinessReport')?.addEventListener('click',exportBusinessReportCsv);
+
 async function refreshDashboardOverview(){if(!cloud())return;['kpiOrders','kpiRevenue','kpiTailoring','kpiReviews','kpiProducts'].forEach(id=>$(id).textContent='…');try{const [a,t,r,p]=await Promise.all([window.OPQ_SUPABASE.from('orders').select('status,payment_status,total_kes,archived_at').order('created_at',{ascending:false}).limit(500),window.OPQ_SUPABASE.from('tailoring_requests').select('status,archived_at').order('created_at',{ascending:false}).limit(500),window.OPQ_SUPABASE.from('product_reviews').select('is_approved').limit(500),window.OPQ_SUPABASE.from('products').select('id',{count:'exact',head:true})]);const err=[a,t,r,p].find(x=>x.error);if(err)throw err.error;const orders=a.data||[],tailoring=t.data||[],reviews=r.data||[];$('kpiOrders').textContent=orders.filter(x=>!x.archived_at).length;$('kpiRevenue').textContent=money(orders.filter(x=>x.payment_status==='paid').reduce((s,x)=>s+Number(x.total_kes||0),0));$('kpiTailoring').textContent=tailoring.filter(x=>!x.archived_at&&!['completed','delivered','declined'].includes(x.status)).length;$('kpiReviews').textContent=reviews.filter(x=>!x.is_approved).length;$('kpiProducts').textContent=p.count??'—';$('overviewUpdated').textContent='Updated '+new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})+'. Counts use the latest 500 records per list.';}catch(e){$('overviewUpdated').textContent='Summary could not be refreshed: '+e.message;console.warn(e)}}
 async function init(){
   document.querySelectorAll('.admin-protected').forEach(el=>el.style.display='none');
@@ -189,7 +237,7 @@ async function init(){
     const ok=await isAdmin();
     if(ok){document.querySelectorAll('.admin-protected').forEach(el=>el.style.display='block');$('loginPanel').style.display='none';$('authStatus').textContent=session?.user?.email||'Admin';$('logoutBtn').style.display='inline';$('productForm').style.opacity='1';$('productForm').style.pointerEvents='auto';[...$('productForm').querySelectorAll('input,select,textarea,button')].forEach(el=>el.disabled=false);await render();await refreshDashboardOverview()}
     else {$('authStatus').textContent='Admin sign-in required';$('productForm').style.opacity='.45';$('productForm').style.pointerEvents='none';}
-    window.OPQ_SUPABASE.auth.onAuthStateChange(async (_event,s)=>{session=s;const ok=await isAdmin();document.querySelectorAll('.admin-protected').forEach(el=>el.style.display=ok?'block':'none');$('loginPanel').style.display=ok?'none':'block';$('productForm').style.opacity=ok?'1':'.45';$('productForm').style.pointerEvents=ok?'auto':'none';[...$('productForm').querySelectorAll('input,select,textarea,button')].forEach(el=>el.disabled=!ok);$('logoutBtn').style.display=ok?'inline':'none';$('authStatus').textContent=ok?(s?.user?.email||'Admin'):'Admin sign-in required';if(ok){await render();await refreshDashboardOverview()}});
+    window.OPQ_SUPABASE.auth.onAuthStateChange(async (_event,s)=>{session=s;const ok=await isAdmin();document.querySelectorAll('.admin-protected').forEach(el=>el.style.display=ok?'block':'none');$('loginPanel').style.display=ok?'none':'block';$('productForm').style.opacity=ok?'1':'.45';$('productForm').style.pointerEvents=ok?'auto':'none';[...$('productForm').querySelectorAll('input,select,textarea,button')].forEach(el=>el.disabled=!ok);$('logoutBtn').style.display=ok?'inline':'none';$('authStatus').textContent=ok?(s?.user?.email||'Admin'):'Admin sign-in required';if(ok){await render();await refreshDashboardOverview();setDefaultReportDates();await refreshBusinessReport()}});
   } else await render();
 }
 $('loginForm').onsubmit=async e=>{e.preventDefault();if(!cloud()){ $('loginMsg').textContent='Cloud connection unavailable. Please contact the site administrator.'; return; } const {error}=await window.OPQ_SUPABASE.auth.signInWithPassword({email:$('loginEmail').value.trim(),password:$('loginPassword').value});$('loginMsg').textContent=error?error.message:'Signed in. Checking admin access…'};
