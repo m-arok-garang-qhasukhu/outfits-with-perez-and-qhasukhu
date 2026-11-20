@@ -1,4 +1,4 @@
-const KEY='opq_products_v3', CART='opq_cart_v3', SAVED='opq_saved_v1';
+const KEY='opq_products_v3', CART='opq_cart_v3', SAVED='opq_saved_v1', RECENT='opq_recent_v1';
 const seed=[
 {id:1,name:"Men's 3-Piece Suit",price:8500,category:"Men",sizes:"S,M,L,XL,XXL",description:"A polished three-piece look designed for Sunday service, formal gatherings and special occasions.",new:true,featured:true,image:""},
 {id:2,name:"Women's Church Dress",price:6500,category:"Women",sizes:"8,10,12,14,16,18",description:"An elegant church dress with a refined silhouette and comfortable finish.",new:true,featured:true,image:""},
@@ -23,9 +23,17 @@ function saveProducts(p){localStorage.setItem(KEY,JSON.stringify(p))}
 if(!localStorage.getItem(KEY))saveProducts(seed);
 let state={filter:'All',search:'',sort:'featured',inStockOnly:false}, cart=JSON.parse(localStorage.getItem(CART)||'[]');
 let savedProducts=[];try{savedProducts=JSON.parse(localStorage.getItem(SAVED)||'[]').map(String)}catch{savedProducts=[]}
+let recentlyViewed=[];try{recentlyViewed=JSON.parse(localStorage.getItem(RECENT)||'[]').map(String).slice(0,4)}catch{recentlyViewed=[]}
 function saveFavorites(){localStorage.setItem(SAVED,JSON.stringify(savedProducts));const count=document.getElementById('savedCount');if(count)count.textContent=savedProducts.length;}
 
 const grid=document.getElementById('productGrid'), empty=document.getElementById('emptyState');
+function renderRecentlyViewed(){
+ const wrap=document.getElementById('recentlyViewedWrap'),target=document.getElementById('recentlyViewedGrid');
+ if(!wrap||!target)return;
+ const items=recentlyViewed.map(id=>products().find(p=>String(p.id)===id)).filter(Boolean).slice(0,4);
+ wrap.hidden=!items.length;
+ target.innerHTML=items.map(p=>`<button class="recent-view-card" type="button" onclick='quickView(${JSON.stringify(String(p.id))})'><span class="recent-view-thumb">${p.image?`<img src="${escapeReviewText(p.image)}" alt="">`:'<span>P/Q</span>'}</span><span class="recent-view-copy"><strong>${escapeReviewText(p.name)}</strong><small>${money(p.price)}</small></span><span class="recent-view-arrow" aria-hidden="true">↗</span></button>`).join('');
+}
 function render(){
  let p=products().filter(x=>{
   const categoryMatch=state.filter==='All'||(state.filter==='New'?!!x.new:state.filter==='Saved'?savedProducts.includes(String(x.id)):x.category===state.filter);
@@ -41,7 +49,7 @@ function render(){
  grid.innerHTML=p.map(x=>`<article class="product-card"><div class="product-image">${x.image?`<img src="${x.image}" alt="${x.name}">`:`<div class="placeholder">${x.category==='Men'?'M':'W'}</div>`}${x.new?'<span class="badge">NEW</span>':''}<button class="favorite-btn ${savedProducts.includes(String(x.id))?'is-saved':''}" type="button" aria-label="${savedProducts.includes(String(x.id))?'Remove from':'Save to'} favourites" aria-pressed="${savedProducts.includes(String(x.id))}" onclick='toggleFavorite(${JSON.stringify(String(x.id))})'>${savedProducts.includes(String(x.id))?'♥':'♡'}</button>${x.stockQuantity===0?'<span class="stock-badge out">OUT OF STOCK</span>':x.stockQuantity!==null&&x.stockQuantity!==undefined&&x.stockQuantity<=Number(x.lowStockThreshold??3)?'<span class="stock-badge low">LOW STOCK</span>':''}<button class="quick" ${x.stockQuantity===0?'disabled':''} onclick='quickView(${JSON.stringify(String(x.id))})'>${x.stockQuantity===0?'OUT OF STOCK':'QUICK VIEW'}</button></div><div class="product-info"><h3>${x.name}</h3><div class="product-meta"><span>${x.category}</span><span class="price">${money(x.price)}</span></div><div class="product-rating" aria-label="Customer rating">${productRatings[String(x.id)] ? "★ "+(productRatings[String(x.id)].sum/productRatings[String(x.id)].count).toFixed(1)+" · "+productRatings[String(x.id)].count+" review"+(productRatings[String(x.id)].count===1?"":"s") : "No reviews yet"}</div></div></article>`).join('');
  const count=document.getElementById('catalogResultCount');if(count)count.textContent=`Showing ${p.length} of ${products().length} ${products().length===1?'piece':'pieces'}`;
  empty.textContent=state.filter==='Saved'?'You have not saved any favourites yet. Tap the heart on a piece to keep it here.':'No pieces match your search yet.';
- empty.hidden=!!p.length;saveFavorites();renderCart();
+ empty.hidden=!!p.length;saveFavorites();renderCart();renderRecentlyViewed();
 }
 document.querySelectorAll('.filter').forEach(b=>b.onclick=()=>{document.querySelectorAll('.filter').forEach(x=>x.classList.remove('active'));b.classList.add('active');state.filter=b.dataset.filter;render()});
 document.querySelectorAll('.category-tile').forEach(b=>b.onclick=()=>{document.querySelector(`[data-filter="${b.dataset.category}"]`).click();document.getElementById('shop').scrollIntoView()});
@@ -54,6 +62,7 @@ function toggleFavorite(id){id=String(id);savedProducts=savedProducts.includes(i
 function escapeReviewText(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function quickView(id){
  const p=products().find(x=>String(x.id)===String(id)); if(!p)return;
+ recentlyViewed=[String(id),...recentlyViewed.filter(x=>x!==String(id))].slice(0,4);localStorage.setItem(RECENT,JSON.stringify(recentlyViewed));renderRecentlyViewed();
  const sizes=(p.sizes||'').split(',').map(s=>s.trim()).filter(Boolean);selectedProductSize=sizes[0]||'';
  const reviews=productReviews[String(p.id)]||[];const reviewMarkup=reviews.length?`<section class="quick-reviews"><div class="quick-reviews-head"><strong>Customer reviews</strong><span>★ ${(reviews.reduce((sum,r)=>sum+Number(r.rating||0),0)/reviews.length).toFixed(1)} · ${reviews.length} review${reviews.length===1?'':'s'}</span></div>${reviews.slice(0,3).map(r=>`<article class="quick-review"><div class="quick-review-stars" aria-label="${Number(r.rating)||0} out of 5 stars">${'★'.repeat(Math.max(0,Math.min(5,Number(r.rating)||0)))}${'☆'.repeat(5-Math.max(0,Math.min(5,Number(r.rating)||0)))}</div><p>${escapeReviewText(r.review_text)}</p><small>${escapeReviewText(r.reviewer_name||'Verified customer')}${r.created_at?' · '+new Date(r.created_at).toLocaleDateString('en-KE'):''}</small></article>`).join('')}</section>`:`<section class="quick-reviews"><strong>Customer reviews</strong><p class="no-product-reviews">No approved reviews for this piece yet. Be the first to share your experience after purchase.</p></section>`;
  document.getElementById('productModal').innerHTML=`<button class="modal-close" onclick="closeModal()">×</button><div class="modal-photo">${p.image?`<img src="${p.image}" alt="${p.name}">`:`<div class="placeholder">P/Q</div>`}</div><div class="modal-copy"><p class="eyebrow">${p.category}${p.new?' • NEW':''}</p><h2>${p.name}</h2><h3>${money(p.price)}</h3><p>${p.description||'Beautifully tailored for your Sunday look.'}</p><strong style="font-size:10px;letter-spacing:.1em">SELECT SIZE</strong><div class="size-row">${sizes.map((s,i)=>`<button type="button" class="${i===0?'selected':''}" data-size="${s}" onclick="selectSize(this)">${s}</button>`).join('')}</div>${reviewMarkup}<button class="modal-favorite ${savedProducts.includes(String(p.id))?'is-saved':''}" type="button" aria-pressed="${savedProducts.includes(String(p.id))}" onclick='toggleFavorite(${JSON.stringify(String(p.id))});quickView(${JSON.stringify(String(p.id))})'>${savedProducts.includes(String(p.id))?'♥ Saved to favourites':'♡ Save to favourites'}</button><div class="modal-actions">${p.stockQuantity===0?'<strong class="stock-badge out">Currently out of stock</strong>':`<button class="btn btn-dark" onclick='addSelectedToCart(${JSON.stringify(String(p.id))})'>Add to bag</button>`}<a class="btn" style="border:1px solid #ddd" target="_blank" href="https://wa.me/254799281744?text=${encodeURIComponent('Hello, I am interested in '+p.name+' at '+money(p.price)+'.')}">Ask on WhatsApp</a></div></div>`;
