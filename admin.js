@@ -146,6 +146,8 @@ window.edit=edit;window.removeProduct=removeProduct;
 
 const tailoringStages=['submitted','under_review','awaiting_measurements','quoted','approved','deposit_pending','in_progress','ready','completed','delivered','declined'];
 let tailoringObjectUrls=[];
+let tailoringAdminPage=1;
+const tailoringAdminPageSize=20;
 function tailoringDetail(label,value,full=false){
  const content=value===null||value===undefined||String(value).trim()===''?'Not provided':String(value);
  return '<div class="tailor-detail'+(full?' full':'')+'"><b>'+esc(label)+'</b><span>'+esc(content)+'</span></div>';
@@ -165,13 +167,15 @@ async function renderTailoring(){
  if(!cloud()||!$('tailoringRows'))return;
  tailoringObjectUrls.forEach(url=>URL.revokeObjectURL(url));
  tailoringObjectUrls=[];
- const {data,error}=await window.OPQ_SUPABASE.from('tailoring_requests').select('*').order('created_at',{ascending:false}).limit(150);
- if(error){$('tailoringAdminMessage').textContent=error.message;return;}
+ const data=[];const pageSize=500;
+ for(let from=0;;from+=pageSize){const {data:batch,error}=await window.OPQ_SUPABASE.from('tailoring_requests').select('*').order('created_at',{ascending:false}).range(from,from+pageSize-1);if(error){$('tailoringAdminMessage').textContent='Could not load tailoring requests: '+error.message;return;}data.push(...(batch||[]));if(!batch||batch.length<pageSize)break;}
  const active=data.filter(r=>!r.archived_at),archived=data.filter(r=>r.archived_at);
  const statusFilter=$('tailoringStatusFilter')?.value||'all',depositFilter=$('tailoringDepositFilter')?.value||'all',term=($('tailoringQuickSearch')?.value||'').trim().toLowerCase();
- const visible=active.filter(r=>(statusFilter==='all'||r.status===statusFilter)&&(depositFilter==='all'||r.deposit_status===depositFilter)&&(!term||[r.reference_code,r.customer_name,r.customer_email,r.customer_phone,r.garment_type,r.fabric,r.colour].some(v=>String(v||'').toLowerCase().includes(term))));
- const count=$('tailoringCount');if(count)count.textContent=visible.length+' shown / '+active.length+' active';
- const html=await Promise.all(visible.map(async r=>{
+ const visible=active.filter(r=>(statusFilter==='all'||r.status===statusFilter)&&(depositFilter==='all'||r.deposit_status===depositFilter)&&(!term||[r.reference_code,r.customer_name,r.customer_email,r.customer_phone,r.garment_type,r.fabric,r.colour,r.desired_completion_date].some(v=>String(v||'').toLowerCase().includes(term))));
+ const totalPages=Math.max(1,Math.ceil(visible.length/tailoringAdminPageSize));tailoringAdminPage=Math.min(Math.max(1,tailoringAdminPage),totalPages);
+ const pageStart=(tailoringAdminPage-1)*tailoringAdminPageSize,pageRows=visible.slice(pageStart,pageStart+tailoringAdminPageSize);
+ const count=$('tailoringCount');if(count)count.textContent=visible.length+' matching / '+active.length+' active';
+ const html=await Promise.all(pageRows.map(async r=>{
   let preview='';
   if(r.reference_image_url){
    const {data:file,error:e}=await window.OPQ_SUPABASE.storage.from('tailoring-references').download(r.reference_image_url);
@@ -188,9 +192,21 @@ async function renderTailoring(){
   return '<tr class="tailoring-request-row"><td>'+ref+'</td><td>'+customer+'</td><td>'+details+'</td><td>'+workflow+'</td><td>'+messages+'</td><td class="tailor-actions"><button onclick="saveTailoring(\''+r.id+'\')">Save request</button>'+(['completed','delivered'].includes(r.status)?'<br><button class="archive-action" onclick="archiveTailoringAdmin(\''+r.id+'\')">Archive request</button>':'')+'</td></tr>';
  }));
  $('tailoringRows').innerHTML=html.join('');
+ renderTailoringAdminPagination(totalPages,visible.length,pageStart,pageRows.length);
  const archivedRows=$('archivedTailoringRows');
  if(archivedRows) archivedRows.innerHTML=archived.map(r=>'<tr><td><b>'+esc(r.reference_code)+'</b></td><td>'+esc(r.customer_name||'')+'</td><td>'+esc(r.garment_type)+'</td><td>'+new Date(r.archived_at).toLocaleString()+'</td><td><button onclick="restoreTailoringRequest(\''+r.id+'\')">Restore to active</button></td></tr>').join('')||'<tr><td colspan="5">No archived requests.</td></tr>';
- $('tailoringAdminMessage').textContent=active.length+' active request(s); '+archived.length+' archived. Customer details are now grouped into readable cards. Archive completed or delivered requests only.';
+ $('tailoringAdminMessage').textContent=active.length+' active request(s); '+archived.length+' archived. All records are loaded in batches; use search and pages to find older requests. Archive completed or delivered requests only.';
+}
+function renderTailoringAdminPagination(totalPages,total,start,shown){
+ const host=$('tailoringAdminPagination'),summary=$('tailoringPageSummary');if(!host)return;
+ if(summary)summary.textContent=total?'Showing '+(start+1)+'–'+(start+shown)+' of '+total+' matching requests':'No requests match these filters';
+ if(totalPages<=1){host.innerHTML='';host.hidden=true;return;}host.hidden=false;
+ const button=(label,page,disabled,current)=>'<button type="button" class="tailoring-admin-page '+(current?'active':'')+'" data-tailoring-page="'+page+'" '+(disabled?'disabled':'')+'>'+label+'</button>';
+ const pages=[];for(let n=1;n<=totalPages;n++)if(n===1||n===totalPages||Math.abs(n-tailoringAdminPage)<=1)pages.push(n);
+ let markup=button('Previous',tailoringAdminPage-1,tailoringAdminPage===1,false),previous=0;
+ for(const n of pages){if(previous&&n-previous>1)markup+='<span aria-hidden="true">…</span>';markup+=button(String(n),n,false,n===tailoringAdminPage);previous=n;}
+ markup+=button('Next',tailoringAdminPage+1,tailoringAdminPage===totalPages,false);host.innerHTML=markup;
+ host.querySelectorAll('button[data-tailoring-page]').forEach(b=>b.addEventListener('click',()=>{tailoringAdminPage=Number(b.dataset.tailoringPage);renderTailoring();$('tailoringPanel').scrollIntoView({behavior:'smooth',block:'start'});}));
 }
 window.saveTailoring=async id=>{try{const status=$('tailor-status-'+id).value;const {error}=await window.OPQ_SUPABASE.from('tailoring_requests').update({status,deposit_status:$('tailor-deposit-'+id).value,admin_note:$('tailor-note-'+id).value.trim(),customer_message:$('tailor-message-'+id).value.trim(),customer_message_sent_at:null}).eq('id',id);if(error)throw error;$('tailoringAdminMessage').textContent='Tailoring request and message draft saved. The customer sees the message only after you mark it sent.';await renderTailoring();}catch(e){$('tailoringAdminMessage').textContent='Could not update: '+e.message}};
 window.archiveTailoringAdmin=async id=>{try{const {error}=await window.OPQ_SUPABASE.from('tailoring_requests').update({archived_at:new Date().toISOString()}).eq('id',id).in('status',['completed','delivered']).is('archived_at',null);if(error)throw error;await renderTailoring();}catch(e){$('tailoringAdminMessage').textContent='Could not archive: '+e.message}};
@@ -331,4 +347,4 @@ init();
 
 // Section-level filters keep the global dashboard search available as well.
 ['orderStatusFilter','orderPaymentFilter','orderQuickSearch'].forEach(id=>$(id)?.addEventListener(id==='orderQuickSearch'?'input':'change',()=>renderOrders()));
-['tailoringStatusFilter','tailoringDepositFilter','tailoringQuickSearch'].forEach(id=>$(id)?.addEventListener(id==='tailoringQuickSearch'?'input':'change',()=>renderTailoring()));
+['tailoringStatusFilter','tailoringDepositFilter','tailoringQuickSearch'].forEach(id=>$(id)?.addEventListener(id==='tailoringQuickSearch'?'input':'change',()=>{tailoringAdminPage=1;renderTailoring()}));
