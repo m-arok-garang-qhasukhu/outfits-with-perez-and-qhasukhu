@@ -21,21 +21,30 @@ async function loadCatalog(){
 }
 function saveProducts(p){localStorage.setItem(KEY,JSON.stringify(p))}
 if(!localStorage.getItem(KEY))saveProducts(seed);
-let state={filter:'All',search:''}, cart=JSON.parse(localStorage.getItem(CART)||'[]');
+let state={filter:'All',search:'',sort:'featured',inStockOnly:false}, cart=JSON.parse(localStorage.getItem(CART)||'[]');
 
 const grid=document.getElementById('productGrid'), empty=document.getElementById('emptyState');
 function render(){
- let p=products().filter(x=>state.filter==='All'||state.filter==='New'?state.filter==='New'?x.new:x.category===state.filter:true);
- if(state.filter!=='All'&&state.filter!=='New')p=products().filter(x=>x.category===state.filter);
- if(state.search)p=p.filter(x=>(x.name+' '+x.category+' '+x.description).toLowerCase().includes(state.search.toLowerCase()));
- grid.innerHTML=p.map(x=>`<article class="product-card">
- <div class="product-image">${x.image?`<img src="${x.image}" alt="${x.name}">`:`<div class="placeholder">${x.category==='Men'?'M':'W'}</div>`}${x.new?'<span class="badge">NEW</span>':''}${x.stockQuantity===0?'<span class="stock-badge out">OUT OF STOCK</span>':x.stockQuantity!==null&&x.stockQuantity!==undefined&&x.stockQuantity<=Number(x.lowStockThreshold??3)?'<span class="stock-badge low">LOW STOCK</span>':''}<button class="quick" ${x.stockQuantity===0?'disabled':''} onclick='quickView(${JSON.stringify(String(x.id))})'>${x.stockQuantity===0?'OUT OF STOCK':'QUICK VIEW'}</button></div>
- <div class="product-info"><h3>${x.name}</h3><div class="product-meta"><span>${x.category}</span><span class="price">${money(x.price)}</span></div><div class="product-rating" aria-label="Customer rating">${productRatings[String(x.id)] ? "★ "+(productRatings[String(x.id)].sum/productRatings[String(x.id)].count).toFixed(1)+" · "+productRatings[String(x.id)].count+" review"+(productRatings[String(x.id)].count===1?"":"s") : "No reviews yet"}</div></div></article>`).join('');
- empty.hidden=!!p.length; renderCart();
+ let p=products().filter(x=>{
+  const categoryMatch=state.filter==='All'||(state.filter==='New'?!!x.new:x.category===state.filter);
+  const searchMatch=!state.search||(x.name+' '+x.category+' '+(x.description||'')).toLowerCase().includes(state.search.toLowerCase());
+  const known=x.stockQuantity!==null&&x.stockQuantity!==undefined;
+  return categoryMatch&&searchMatch&&(!state.inStockOnly||(known&&Number(x.stockQuantity)>0));
+ });
+ if(state.sort==='price-asc')p.sort((a,b)=>Number(a.price)-Number(b.price));
+ else if(state.sort==='price-desc')p.sort((a,b)=>Number(b.price)-Number(a.price));
+ else if(state.sort==='rating')p.sort((a,b)=>{const ra=productRatings[String(a.id)]||{sum:0,count:0},rb=productRatings[String(b.id)]||{sum:0,count:0};return (rb.count?rb.sum/rb.count:0)-(ra.count?ra.sum/ra.count:0)||rb.count-ra.count});
+ else if(state.sort==='name')p.sort((a,b)=>String(a.name).localeCompare(String(b.name)));
+ else p.sort((a,b)=>Number(!!b.featured)-Number(!!a.featured));
+ grid.innerHTML=p.map(x=>`<article class="product-card"><div class="product-image">${x.image?`<img src="${x.image}" alt="${x.name}">`:`<div class="placeholder">${x.category==='Men'?'M':'W'}</div>`}${x.new?'<span class="badge">NEW</span>':''}${x.stockQuantity===0?'<span class="stock-badge out">OUT OF STOCK</span>':x.stockQuantity!==null&&x.stockQuantity!==undefined&&x.stockQuantity<=Number(x.lowStockThreshold??3)?'<span class="stock-badge low">LOW STOCK</span>':''}<button class="quick" ${x.stockQuantity===0?'disabled':''} onclick='quickView(${JSON.stringify(String(x.id))})'>${x.stockQuantity===0?'OUT OF STOCK':'QUICK VIEW'}</button></div><div class="product-info"><h3>${x.name}</h3><div class="product-meta"><span>${x.category}</span><span class="price">${money(x.price)}</span></div><div class="product-rating" aria-label="Customer rating">${productRatings[String(x.id)] ? "★ "+(productRatings[String(x.id)].sum/productRatings[String(x.id)].count).toFixed(1)+" · "+productRatings[String(x.id)].count+" review"+(productRatings[String(x.id)].count===1?"":"s") : "No reviews yet"}</div></div></article>`).join('');
+ const count=document.getElementById('catalogResultCount');if(count)count.textContent=`Showing ${p.length} of ${products().length} ${products().length===1?'piece':'pieces'}`;
+ empty.hidden=!!p.length;renderCart();
 }
 document.querySelectorAll('.filter').forEach(b=>b.onclick=()=>{document.querySelectorAll('.filter').forEach(x=>x.classList.remove('active'));b.classList.add('active');state.filter=b.dataset.filter;render()});
 document.querySelectorAll('.category-tile').forEach(b=>b.onclick=()=>{document.querySelector(`[data-filter="${b.dataset.category}"]`).click();document.getElementById('shop').scrollIntoView()});
 document.getElementById('searchInput').oninput=e=>{state.search=e.target.value;render()};
+document.getElementById('sortSelect')?.addEventListener('change',e=>{state.sort=e.target.value;render()});
+document.getElementById('inStockOnly')?.addEventListener('change',e=>{state.inStockOnly=e.target.checked;render()});
 document.getElementById('menuBtn').onclick=()=>document.getElementById('mainNav').classList.toggle('open');
 
 function quickView(id){

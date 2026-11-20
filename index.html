@@ -68,6 +68,15 @@
           <button class="filter" data-filter="New">New arrivals</button>
         </div>
         <label class="search"><span>⌕</span><input id="searchInput" type="search" placeholder="Search the collection…"></label>
+        <div class="catalog-refinements">
+          <label class="catalog-sort">Sort by
+            <select id="sortSelect" aria-label="Sort products">
+              <option value="featured">Featured</option><option value="price-asc">Price: low to high</option><option value="price-desc">Price: high to low</option><option value="rating">Top rated</option><option value="name">Name: A to Z</option>
+            </select>
+          </label>
+          <label class="stock-only"><input id="inStockOnly" type="checkbox"> In-stock items only</label>
+        </div>
+        <p class="catalog-result-count" id="catalogResultCount" aria-live="polite"></p>
       </div>
       <div class="product-grid" id="productGrid"></div>
       <div class="empty-state" id="emptyState" hidden>No pieces match your search yet.</div>

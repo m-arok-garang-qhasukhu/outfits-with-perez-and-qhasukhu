@@ -557,3 +557,12 @@ footer a:hover{color:#fff}
 
 /* P&Q inventory controls */
 .stock-badge{display:inline-block;margin:7px 8px 0 0;padding:5px 8px;border-radius:5px;background:#edf2f7;color:#142b4a;font-size:11px;font-weight:700}.stock-badge.low{background:#fff0cf;color:#765000}.stock-badge.out{background:#f8e2e2;color:#8b2020}.product-card .quick:disabled{opacity:.55;cursor:not-allowed}
+
+/* Public storefront catalogue refinements */
+.catalog-refinements{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:14px}
+.catalog-sort{display:flex;align-items:center;gap:9px;color:#142b4a;font-size:12px;font-weight:800}
+.catalog-sort select{min-width:190px;padding:11px 36px 11px 13px;border:1px solid #c9d1dc;border-radius:8px;background:#fffdfb;color:#142b4a;font:inherit;font-weight:700}
+.stock-only{display:inline-flex;align-items:center;gap:8px;color:#142b4a;font-size:12px;font-weight:800;cursor:pointer}
+.stock-only input{width:17px;height:17px;accent-color:#76243d}
+.catalog-result-count{margin:13px 0 0;color:#526176;font-size:12px;font-weight:700}
+@media(max-width:640px){.catalog-refinements{align-items:stretch}.catalog-sort{width:100%;justify-content:space-between}.catalog-sort select{flex:1;min-width:0}.stock-only{padding:5px 0}}
