@@ -178,6 +178,23 @@ function reportDateBounds(){
  const end=$('reportEndDate')?.value||'9999-12-31';
  return {start,end};
 }
+
+function renderBusinessCharts(orders){
+ const revenueEl=$('reportRevenueChart'),statusEl=$('reportStatusChart');if(!revenueEl||!statusEl)return;
+ const paid=orders.filter(o=>o.payment_status==='paid');const monthly=new Map();
+ paid.forEach(o=>{const date=String(o.created_at||'').slice(0,7);if(date)monthly.set(date,(monthly.get(date)||0)+Number(o.total_kes||0));});
+ const months=[...monthly.entries()].sort((a,b)=>a[0].localeCompare(b[0])).slice(-12);
+ if(!months.length)revenueEl.innerHTML='<div class="report-chart-empty">No paid revenue in this date range.</div>';
+ else{const max=Math.max(...months.map(x=>x[1]),1),w=680,h=220,left=48,right=12,top=14,bottom=48,plotW=w-left-right,plotH=h-top-bottom,gap=months.length>8?8:16,bw=Math.max(12,(plotW-gap*(months.length-1))/months.length);
+ const bars=months.map(([key,value],i)=>{const bh=value/max*plotH,x=left+i*(bw+gap),y=top+plotH-bh,label=new Date(key+'-01T00:00:00').toLocaleDateString(undefined,{month:'short',year:'2-digit'});return '<g><title>'+esc(label+': '+money(value))+'</title><rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="4" fill="#142b4a"/><text x="'+(x+bw/2).toFixed(1)+'" y="'+(h-20)+'" text-anchor="middle" font-size="11" fill="#425466">'+esc(label)+'</text></g>';}).join('');
+ revenueEl.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Monthly paid revenue bar chart"><line x1="'+left+'" y1="'+(top+plotH)+'" x2="'+(w-right)+'" y2="'+(top+plotH)+'" stroke="#cbd5e1"/><text x="4" y="14" font-size="10" fill="#667085">'+esc(money(max))+'</text>'+bars+'</svg>';}
+ const counts=new Map();orders.forEach(o=>{const key=String(o.status||'unknown');counts.set(key,(counts.get(key)||0)+1);});const statuses=[...counts.entries()].sort((a,b)=>b[1]-a[1]);
+ if(!statuses.length)statusEl.innerHTML='<div class="report-chart-empty">No orders in this date range.</div>';
+ else{const max=Math.max(...statuses.map(x=>x[1]),1),w=680,row=34,labelW=145,barW=430,h=Math.max(100,statuses.length*row+16);
+ const bars=statuses.map(([name,count],i)=>{const y=12+i*row,width=count/max*barW;return '<g><title>'+esc(titleCase(name)+': '+count)+'</title><text x="4" y="'+(y+17)+'" font-size="12" fill="#344054">'+esc(titleCase(name))+'</text><rect x="'+labelW+'" y="'+(y+3)+'" width="'+barW+'" height="17" rx="5" fill="#f1e8e2"/><rect x="'+labelW+'" y="'+(y+3)+'" width="'+width.toFixed(1)+'" height="17" rx="5" fill="#76243d"/><text x="'+(labelW+barW+10)+'" y="'+(y+17)+'" font-size="12" fill="#344054">'+count+'</text></g>';}).join('');
+ statusEl.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Order status distribution bar chart">'+bars+'</svg>';}
+}
+
 async function refreshBusinessReport(){
  if(!cloud())return;
  const message=$('businessReportMessage');if(message)message.textContent='Preparing report…';
@@ -191,6 +208,7 @@ async function refreshBusinessReport(){
   if(start>end)throw new Error('The start date must be on or before the end date.');
   const inRange=row=>{const date=String(row.created_at||'').slice(0,10);return date>=start&&date<=end;};
   businessReportOrders=(ordersResult.data||[]).filter(inRange);
+  renderBusinessCharts(businessReportOrders);
   const tailoring=(tailoringResult.data||[]).filter(inRange);
   const paid=businessReportOrders.filter(o=>o.payment_status==='paid');
   const outstanding=businessReportOrders.filter(o=>['unpaid','pending','failed'].includes(o.payment_status));
