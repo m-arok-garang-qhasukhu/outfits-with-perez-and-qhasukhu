@@ -539,3 +539,10 @@ footer a:hover{color:#fff}
 }
 .public-homepage footer a:hover{color:#563522 !important}
 .public-homepage footer .footer-logo{filter:none !important}
+
+
+/* Customer review history: clear gold rating stars */
+.review-status-rating{display:flex;align-items:center;gap:9px;margin:10px 0;color:#222;font-weight:700}
+.review-status-stars{display:inline-flex;gap:2px;color:#d4d4d4;font-size:19px;line-height:1;letter-spacing:0}
+.review-status-stars .is-filled{color:#d4a017;text-shadow:0 0 1px #9a6b00}
+.review-status-rating>span:last-child{font-size:12px;color:#333}
