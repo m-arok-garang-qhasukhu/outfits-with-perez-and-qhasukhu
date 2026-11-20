@@ -1,4 +1,4 @@
-const KEY='opq_products_v3', CART='opq_cart_v3';
+const KEY='opq_products_v3', CART='opq_cart_v3', SAVED='opq_saved_v1';
 const seed=[
 {id:1,name:"Men's 3-Piece Suit",price:8500,category:"Men",sizes:"S,M,L,XL,XXL",description:"A polished three-piece look designed for Sunday service, formal gatherings and special occasions.",new:true,featured:true,image:""},
 {id:2,name:"Women's Church Dress",price:6500,category:"Women",sizes:"8,10,12,14,16,18",description:"An elegant church dress with a refined silhouette and comfortable finish.",new:true,featured:true,image:""},
@@ -22,11 +22,13 @@ async function loadCatalog(){
 function saveProducts(p){localStorage.setItem(KEY,JSON.stringify(p))}
 if(!localStorage.getItem(KEY))saveProducts(seed);
 let state={filter:'All',search:'',sort:'featured',inStockOnly:false}, cart=JSON.parse(localStorage.getItem(CART)||'[]');
+let savedProducts=[];try{savedProducts=JSON.parse(localStorage.getItem(SAVED)||'[]').map(String)}catch{savedProducts=[]}
+function saveFavorites(){localStorage.setItem(SAVED,JSON.stringify(savedProducts));const count=document.getElementById('savedCount');if(count)count.textContent=savedProducts.length;}
 
 const grid=document.getElementById('productGrid'), empty=document.getElementById('emptyState');
 function render(){
  let p=products().filter(x=>{
-  const categoryMatch=state.filter==='All'||(state.filter==='New'?!!x.new:x.category===state.filter);
+  const categoryMatch=state.filter==='All'||(state.filter==='New'?!!x.new:state.filter==='Saved'?savedProducts.includes(String(x.id)):x.category===state.filter);
   const searchMatch=!state.search||(x.name+' '+x.category+' '+(x.description||'')).toLowerCase().includes(state.search.toLowerCase());
   const known=x.stockQuantity!==null&&x.stockQuantity!==undefined;
   return categoryMatch&&searchMatch&&(!state.inStockOnly||(known&&Number(x.stockQuantity)>0));
@@ -36,9 +38,10 @@ function render(){
  else if(state.sort==='rating')p.sort((a,b)=>{const ra=productRatings[String(a.id)]||{sum:0,count:0},rb=productRatings[String(b.id)]||{sum:0,count:0};return (rb.count?rb.sum/rb.count:0)-(ra.count?ra.sum/ra.count:0)||rb.count-ra.count});
  else if(state.sort==='name')p.sort((a,b)=>String(a.name).localeCompare(String(b.name)));
  else p.sort((a,b)=>Number(!!b.featured)-Number(!!a.featured));
- grid.innerHTML=p.map(x=>`<article class="product-card"><div class="product-image">${x.image?`<img src="${x.image}" alt="${x.name}">`:`<div class="placeholder">${x.category==='Men'?'M':'W'}</div>`}${x.new?'<span class="badge">NEW</span>':''}${x.stockQuantity===0?'<span class="stock-badge out">OUT OF STOCK</span>':x.stockQuantity!==null&&x.stockQuantity!==undefined&&x.stockQuantity<=Number(x.lowStockThreshold??3)?'<span class="stock-badge low">LOW STOCK</span>':''}<button class="quick" ${x.stockQuantity===0?'disabled':''} onclick='quickView(${JSON.stringify(String(x.id))})'>${x.stockQuantity===0?'OUT OF STOCK':'QUICK VIEW'}</button></div><div class="product-info"><h3>${x.name}</h3><div class="product-meta"><span>${x.category}</span><span class="price">${money(x.price)}</span></div><div class="product-rating" aria-label="Customer rating">${productRatings[String(x.id)] ? "★ "+(productRatings[String(x.id)].sum/productRatings[String(x.id)].count).toFixed(1)+" · "+productRatings[String(x.id)].count+" review"+(productRatings[String(x.id)].count===1?"":"s") : "No reviews yet"}</div></div></article>`).join('');
+ grid.innerHTML=p.map(x=>`<article class="product-card"><div class="product-image">${x.image?`<img src="${x.image}" alt="${x.name}">`:`<div class="placeholder">${x.category==='Men'?'M':'W'}</div>`}${x.new?'<span class="badge">NEW</span>':''}<button class="favorite-btn ${savedProducts.includes(String(x.id))?'is-saved':''}" type="button" aria-label="${savedProducts.includes(String(x.id))?'Remove from':'Save to'} favourites" aria-pressed="${savedProducts.includes(String(x.id))}" onclick='toggleFavorite(${JSON.stringify(String(x.id))})'>${savedProducts.includes(String(x.id))?'♥':'♡'}</button>${x.stockQuantity===0?'<span class="stock-badge out">OUT OF STOCK</span>':x.stockQuantity!==null&&x.stockQuantity!==undefined&&x.stockQuantity<=Number(x.lowStockThreshold??3)?'<span class="stock-badge low">LOW STOCK</span>':''}<button class="quick" ${x.stockQuantity===0?'disabled':''} onclick='quickView(${JSON.stringify(String(x.id))})'>${x.stockQuantity===0?'OUT OF STOCK':'QUICK VIEW'}</button></div><div class="product-info"><h3>${x.name}</h3><div class="product-meta"><span>${x.category}</span><span class="price">${money(x.price)}</span></div><div class="product-rating" aria-label="Customer rating">${productRatings[String(x.id)] ? "★ "+(productRatings[String(x.id)].sum/productRatings[String(x.id)].count).toFixed(1)+" · "+productRatings[String(x.id)].count+" review"+(productRatings[String(x.id)].count===1?"":"s") : "No reviews yet"}</div></div></article>`).join('');
  const count=document.getElementById('catalogResultCount');if(count)count.textContent=`Showing ${p.length} of ${products().length} ${products().length===1?'piece':'pieces'}`;
- empty.hidden=!!p.length;renderCart();
+ empty.textContent=state.filter==='Saved'?'You have not saved any favourites yet. Tap the heart on a piece to keep it here.':'No pieces match your search yet.';
+ empty.hidden=!!p.length;saveFavorites();renderCart();
 }
 document.querySelectorAll('.filter').forEach(b=>b.onclick=()=>{document.querySelectorAll('.filter').forEach(x=>x.classList.remove('active'));b.classList.add('active');state.filter=b.dataset.filter;render()});
 document.querySelectorAll('.category-tile').forEach(b=>b.onclick=()=>{document.querySelector(`[data-filter="${b.dataset.category}"]`).click();document.getElementById('shop').scrollIntoView()});
@@ -47,10 +50,11 @@ document.getElementById('sortSelect')?.addEventListener('change',e=>{state.sort=
 document.getElementById('inStockOnly')?.addEventListener('change',e=>{state.inStockOnly=e.target.checked;render()});
 document.getElementById('menuBtn').onclick=()=>document.getElementById('mainNav').classList.toggle('open');
 
+function toggleFavorite(id){id=String(id);savedProducts=savedProducts.includes(id)?savedProducts.filter(x=>x!==id):[...savedProducts,id];saveFavorites();render();}
 function quickView(id){
  const p=products().find(x=>String(x.id)===String(id)); if(!p)return;
  const sizes=(p.sizes||'').split(',').map(s=>s.trim()).filter(Boolean);selectedProductSize=sizes[0]||'';
- document.getElementById('productModal').innerHTML=`<button class="modal-close" onclick="closeModal()">×</button><div class="modal-photo">${p.image?`<img src="${p.image}" alt="${p.name}">`:`<div class="placeholder">P/Q</div>`}</div><div class="modal-copy"><p class="eyebrow">${p.category}${p.new?' • NEW':''}</p><h2>${p.name}</h2><h3>${money(p.price)}</h3><p>${p.description||'Beautifully tailored for your Sunday look.'}</p><strong style="font-size:10px;letter-spacing:.1em">SELECT SIZE</strong><div class="size-row">${sizes.map((s,i)=>`<button type="button" class="${i===0?'selected':''}" data-size="${s}" onclick="selectSize(this)">${s}</button>`).join('')}</div><div class="modal-actions">${p.stockQuantity===0?'<strong class="stock-badge out">Currently out of stock</strong>':`<button class="btn btn-dark" onclick='addSelectedToCart(${JSON.stringify(String(p.id))})'>Add to bag</button>`}<a class="btn" style="border:1px solid #ddd" target="_blank" href="https://wa.me/254799281744?text=${encodeURIComponent('Hello, I am interested in '+p.name+' at '+money(p.price)+'.')}">Ask on WhatsApp</a></div></div>`;
+ document.getElementById('productModal').innerHTML=`<button class="modal-close" onclick="closeModal()">×</button><div class="modal-photo">${p.image?`<img src="${p.image}" alt="${p.name}">`:`<div class="placeholder">P/Q</div>`}</div><div class="modal-copy"><p class="eyebrow">${p.category}${p.new?' • NEW':''}</p><h2>${p.name}</h2><h3>${money(p.price)}</h3><p>${p.description||'Beautifully tailored for your Sunday look.'}</p><strong style="font-size:10px;letter-spacing:.1em">SELECT SIZE</strong><div class="size-row">${sizes.map((s,i)=>`<button type="button" class="${i===0?'selected':''}" data-size="${s}" onclick="selectSize(this)">${s}</button>`).join('')}</div><button class="modal-favorite ${savedProducts.includes(String(p.id))?'is-saved':''}" type="button" aria-pressed="${savedProducts.includes(String(p.id))}" onclick='toggleFavorite(${JSON.stringify(String(p.id))});quickView(${JSON.stringify(String(p.id))})'>${savedProducts.includes(String(p.id))?'♥ Saved to favourites':'♡ Save to favourites'}</button><div class="modal-actions">${p.stockQuantity===0?'<strong class="stock-badge out">Currently out of stock</strong>':`<button class="btn btn-dark" onclick='addSelectedToCart(${JSON.stringify(String(p.id))})'>Add to bag</button>`}<a class="btn" style="border:1px solid #ddd" target="_blank" href="https://wa.me/254799281744?text=${encodeURIComponent('Hello, I am interested in '+p.name+' at '+money(p.price)+'.')}">Ask on WhatsApp</a></div></div>`;
  document.getElementById('modalBackdrop').hidden=false;
 }
 let selectedProductSize='';
@@ -100,7 +104,7 @@ checkoutForm.onsubmit=async e=>{
  }catch(err){console.error(err);msg.textContent='Order was not submitted: '+(err.message||'Please try again or contact us on WhatsApp.');}
  finally{btn.disabled=false;btn.textContent='Submit order';}
 };
-window.quickView=quickView;window.closeModal=closeModal;window.addCart=addCart;window.changeQty=changeQty;window.selectSize=selectSize;window.addSelectedToCart=addSelectedToCart;window.removeCartItem=removeCartItem;
+window.quickView=quickView;window.toggleFavorite=toggleFavorite;window.closeModal=closeModal;window.addCart=addCart;window.changeQty=changeQty;window.selectSize=selectSize;window.addSelectedToCart=addSelectedToCart;window.removeCartItem=removeCartItem;
 const faqAnswers=[
  {keys:['deposit','30%','70%','payment'],answer:'Custom tailoring uses a 30% deposit and 70% balance after the quotation is agreed. Payment is coordinated manually through WhatsApp for now; automated M-Pesa checkout is not yet available.'},
  {keys:['track','tracking','order status','where is my order'],answer:'Sign in to My Account to view orders placed under your account and their current progress.'},

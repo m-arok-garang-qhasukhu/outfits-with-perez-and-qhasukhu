@@ -566,3 +566,7 @@ footer a:hover{color:#fff}
 .stock-only input{width:17px;height:17px;accent-color:#76243d}
 .catalog-result-count{margin:13px 0 0;color:#526176;font-size:12px;font-weight:700}
 @media(max-width:640px){.catalog-refinements{align-items:stretch}.catalog-sort{width:100%;justify-content:space-between}.catalog-sort select{flex:1;min-width:0}.stock-only{padding:5px 0}}
+
+
+/* Saved favourites */
+.favorite-btn{position:absolute;top:12px;right:12px;z-index:3;width:38px;height:38px;border:1px solid rgba(20,43,74,.16);border-radius:50%;background:#fff;color:#76243d;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 3px 12px rgba(0,0,0,.1)}.favorite-btn.is-saved,.modal-favorite.is-saved{background:#76243d;color:#fff;border-color:#76243d}.filter[data-filter="Saved"]{color:#76243d;border-color:#76243d}.filter[data-filter="Saved"].active{background:#76243d;color:#fff}.filter[data-filter="Saved"] span{font-weight:700}.modal-favorite{margin:14px 0 18px;padding:10px 14px;border:1px solid #76243d;background:#fff;color:#76243d;font-size:11px;font-weight:700;cursor:pointer}.modal-favorite.is-saved{background:#76243d;color:#fff}@media(max-width:550px){.favorite-btn{width:42px;height:42px;font-size:24px}}
