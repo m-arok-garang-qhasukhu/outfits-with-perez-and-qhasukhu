@@ -186,7 +186,7 @@ function renderBusinessCharts(orders){
  const outstandingStatuses=['unpaid','pending','failed'];
  const monthMap=new Map();
  orders.forEach(o=>{
-  const month=String(o.created_at||'').slice(0,7);if(!/^\\d{4}-\\d{2}$/.test(month))return;
+  const month=String(o.created_at||'').slice(0,7);if(!/^[0-9]{4}-[0-9]{2}$/.test(month))return;
   if(!monthMap.has(month))monthMap.set(month,{paid:0,outstanding:0});
   const row=monthMap.get(month),amount=Number(o.total_kes||0);
   if(o.payment_status==='paid')row.paid+=amount;
