@@ -179,20 +179,56 @@ function reportDateBounds(){
  return {start,end};
 }
 
+
 function renderBusinessCharts(orders){
- const revenueEl=$('reportRevenueChart'),statusEl=$('reportStatusChart');if(!revenueEl||!statusEl)return;
- const paid=orders.filter(o=>o.payment_status==='paid');const monthly=new Map();
- paid.forEach(o=>{const date=String(o.created_at||'').slice(0,7);if(date)monthly.set(date,(monthly.get(date)||0)+Number(o.total_kes||0));});
- const months=[...monthly.entries()].sort((a,b)=>a[0].localeCompare(b[0])).slice(-12);
- if(!months.length)revenueEl.innerHTML='<div class="report-chart-empty">No paid revenue in this date range.</div>';
- else{const max=Math.max(...months.map(x=>x[1]),1),w=680,h=220,left=48,right=12,top=14,bottom=48,plotW=w-left-right,plotH=h-top-bottom,gap=months.length>8?8:16,bw=Math.max(12,(plotW-gap*(months.length-1))/months.length);
- const bars=months.map(([key,value],i)=>{const bh=value/max*plotH,x=left+i*(bw+gap),y=top+plotH-bh,label=new Date(key+'-01T00:00:00').toLocaleDateString(undefined,{month:'short',year:'2-digit'});return '<g><title>'+esc(label+': '+money(value))+'</title><rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="4" fill="#142b4a"/><text x="'+(x+bw/2).toFixed(1)+'" y="'+(h-20)+'" text-anchor="middle" font-size="11" fill="#425466">'+esc(label)+'</text></g>';}).join('');
- revenueEl.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Monthly paid revenue bar chart"><line x1="'+left+'" y1="'+(top+plotH)+'" x2="'+(w-right)+'" y2="'+(top+plotH)+'" stroke="#cbd5e1"/><text x="4" y="14" font-size="10" fill="#667085">'+esc(money(max))+'</text>'+bars+'</svg>';}
- const counts=new Map();orders.forEach(o=>{const key=String(o.status||'unknown');counts.set(key,(counts.get(key)||0)+1);});const statuses=[...counts.entries()].sort((a,b)=>b[1]-a[1]);
+ const revenueEl=$('reportRevenueChart'),statusEl=$('reportStatusChart'),paymentEl=$('reportPaymentChart');
+ if(!revenueEl||!statusEl||!paymentEl)return;
+ const outstandingStatuses=['unpaid','pending','failed'];
+ const monthMap=new Map();
+ orders.forEach(o=>{
+  const month=String(o.created_at||'').slice(0,7);if(!/^\\d{4}-\\d{2}$/.test(month))return;
+  if(!monthMap.has(month))monthMap.set(month,{paid:0,outstanding:0});
+  const row=monthMap.get(month),amount=Number(o.total_kes||0);
+  if(o.payment_status==='paid')row.paid+=amount;
+  else if(outstandingStatuses.includes(String(o.payment_status||'').toLowerCase()))row.outstanding+=amount;
+ });
+ const months=[...monthMap.entries()].sort((a,b)=>a[0].localeCompare(b[0])).slice(-12);
+ const labelMonth=key=>new Date(key+'-01T12:00:00').toLocaleDateString(undefined,{month:'short',year:'2-digit'});
+ const svgEsc=value=>esc(String(value));
+ function moneyAxis(value){const n=Number(value)||0;if(n>=1000000)return 'KSh '+(n/1000000).toFixed(1)+'m';if(n>=1000)return 'KSh '+(n/1000).toFixed(0)+'k';return 'KSh '+Math.round(n);}
+ function drawColumnChart(el,series,aria){
+  if(!series.length){el.innerHTML='<div class="report-chart-empty">No payment data in this date range.</div>';return;}
+  const w=720,h=270,left=82,right=18,top=18,bottom=58,plotW=w-left-right,plotH=h-top-bottom;
+  const maxValue=Math.max(1,...series.flatMap(x=>x.values)),axisMax=Math.ceil(maxValue/4)*4||1,tick=axisMax/4;
+  let grid='';
+  for(let n=0;n<=4;n++){const value=tick*n,y=top+plotH-(value/axisMax)*plotH;grid+='<line x1="'+left+'" y1="'+y+'" x2="'+(w-right)+'" y2="'+y+'" stroke="#e7edf4" stroke-width="1"/><text x="'+(left-10)+'" y="'+(y+4)+'" text-anchor="end" font-size="10" fill="#64748b">'+svgEsc(moneyAxis(value))+'</text>';}
+  const groupW=plotW/series.length,barGap=series.length>8?4:8,barW=Math.min(34,(groupW-barGap*2)/series[0].values.length);
+  let bars='',labels='';
+  series.forEach((item,i)=>{
+   const center=left+groupW*(i+.5),totalWidth=barW*item.values.length+barGap*(item.values.length-1),base=center-totalWidth/2;
+   item.values.forEach((value,j)=>{const bh=value/axisMax*plotH,x=base+j*(barW+barGap),y=top+plotH-bh;bars+='<g><title>'+svgEsc(item.label+': '+labelMonth(item.key)+' — '+money(value))+'</title><rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+Math.max(0,bh).toFixed(1)+'" rx="3" fill="'+item.colors[j]+'"/></g>';});
+   labels+='<text x="'+center.toFixed(1)+'" y="'+(h-29)+'" text-anchor="middle" font-size="11" fill="#475569">'+svgEsc(labelMonth(item.key))+'</text>';
+  });
+  el.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="'+svgEsc(aria)+'">'+grid+'<line x1="'+left+'" y1="'+(top+plotH)+'" x2="'+(w-right)+'" y2="'+(top+plotH)+'" stroke="#94a3b8"/>'+bars+labels+'</svg>';
+ }
+ const revenueSeries=months.map(([key,v])=>({key,label:'Paid revenue',values:[v.paid],colors:['#142b4a']}));
+ drawColumnChart(revenueEl,revenueSeries,'Paid revenue by month, with value axis and gridlines');
+ if(months.length)revenueEl.insertAdjacentHTML('beforeend','<div class="report-chart-legend"><span><i style="background:#142b4a"></i>Paid revenue</span></div>');
+ else revenueEl.innerHTML='<div class="report-chart-empty">No paid revenue in this date range.</div>';
+ const counts=new Map();orders.forEach(o=>{const key=String(o.status||'unknown');counts.set(key,(counts.get(key)||0)+1);});
+ const statuses=[...counts.entries()].sort((a,b)=>b[1]-a[1]);
  if(!statuses.length)statusEl.innerHTML='<div class="report-chart-empty">No orders in this date range.</div>';
- else{const max=Math.max(...statuses.map(x=>x[1]),1),w=680,row=34,labelW=145,barW=430,h=Math.max(100,statuses.length*row+16);
- const bars=statuses.map(([name,count],i)=>{const y=12+i*row,width=count/max*barW;return '<g><title>'+esc(titleCase(name)+': '+count)+'</title><text x="4" y="'+(y+17)+'" font-size="12" fill="#344054">'+esc(titleCase(name))+'</text><rect x="'+labelW+'" y="'+(y+3)+'" width="'+barW+'" height="17" rx="5" fill="#f1e8e2"/><rect x="'+labelW+'" y="'+(y+3)+'" width="'+width.toFixed(1)+'" height="17" rx="5" fill="#76243d"/><text x="'+(labelW+barW+10)+'" y="'+(y+17)+'" font-size="12" fill="#344054">'+count+'</text></g>';}).join('');
- statusEl.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Order status distribution bar chart">'+bars+'</svg>';}
+ else{
+  const w=720,row=42,left=150,right=42,barW=w-left-right,h=Math.max(120,statuses.length*row+24),max=Math.max(...statuses.map(x=>x[1]),1),axisMax=Math.ceil(max/4)*4||1;
+  let grid='',bars='';
+  for(let n=0;n<=4;n++){const x=left+barW*n/4;grid+='<line x1="'+x+'" y1="8" x2="'+x+'" y2="'+(h-16)+'" stroke="#e7edf4"/><text x="'+x+'" y="'+(h-2)+'" text-anchor="middle" font-size="10" fill="#64748b">'+Math.round(axisMax*n/4)+'</text>';}
+  statuses.forEach(([name,count],i)=>{const y=14+i*row,width=count/axisMax*barW;bars+='<g><title>'+svgEsc(titleCase(name)+': '+count+' orders')+'</title><text x="'+(left-12)+'" y="'+(y+18)+'" text-anchor="end" font-size="12" fill="#344054">'+svgEsc(titleCase(name))+'</text><rect x="'+left+'" y="'+y+'" width="'+barW+'" height="22" rx="5" fill="#f1e8e2"/><rect x="'+left+'" y="'+y+'" width="'+width.toFixed(1)+'" height="22" rx="5" fill="#76243d"/><text x="'+(left+width+8)+'" y="'+(y+16)+'" font-size="11" fill="#344054">'+count+'</text></g>';});
+  statusEl.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Order status distribution horizontal bar chart">'+grid+bars+'</svg>';
+ }
+ const paymentSeries=months.map(([key,v])=>({key,label:'Payments',values:[v.paid,v.outstanding],colors:['#142b4a','#76243d']}));
+ drawColumnChart(paymentEl,paymentSeries,'Monthly paid revenue compared with outstanding payments');
+ if(months.length)paymentEl.insertAdjacentHTML('beforeend','<div class="report-chart-legend"><span><i style="background:#142b4a"></i>Paid revenue</span><span><i style="background:#76243d"></i>Outstanding</span></div>');
+ else paymentEl.innerHTML='<div class="report-chart-empty">No payment data in this date range.</div>';
 }
 
 async function refreshBusinessReport(){
