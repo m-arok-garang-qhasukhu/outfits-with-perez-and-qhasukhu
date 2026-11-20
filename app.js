@@ -10,11 +10,21 @@ const seed=[
 const money=n=>`KSh ${Number(n).toLocaleString('en-KE')}`;
 let catalog=null, productRatings={}, productReviews={};
 function products(){if(Array.isArray(catalog))return catalog;try{const p=JSON.parse(localStorage.getItem(KEY));return Array.isArray(p)&&p.length?p:seed}catch{return seed}}
+function normalizeProductSizes(value){return Array.isArray(value)?value.map(v=>String(v).trim()).filter(Boolean).join(','):String(value||'').trim()}
 async function loadCatalog(){
  if(window.OPQ_CLOUD?.ready && window.OPQ_SUPABASE){
-   const {data,error}=await window.OPQ_SUPABASE.from('products').select('*').eq('available',true).order('created_at',{ascending:false});
-   if(!error && Array.isArray(data)){catalog=data.map(x=>({id:x.id,name:x.name,price:x.price_kes,category:x.category,sizes:(x.sizes||[]).join(','),description:x.description||'',new:!!x.is_new,featured:!!x.featured,image:x.image_url||'',available:x.available!==false,stockQuantity:x.stock_quantity,lowStockThreshold:x.low_stock_threshold}));productRatings={};productReviews={};const {data:reviews,error:reviewError}=await window.OPQ_SUPABASE.from('product_reviews').select('product_id,rating,review_text,reviewer_name,created_at').eq('is_approved',true).not('product_id','is',null).order('created_at',{ascending:false});if(!reviewError){for(const review of reviews||[]){if(!review.product_id)continue;const key=String(review.product_id);if(!productRatings[key])productRatings[key]={sum:0,count:0};productRatings[key].sum+=Number(review.rating)||0;productRatings[key].count++;if(!productReviews[key])productReviews[key]=[];productReviews[key].push(review);}}else console.warn('Approved product reviews unavailable:',reviewError);return true}
-   console.warn('Cloud catalog unavailable; using demo catalog.',error);
+   const pageSize=500, rows=[];
+   for(let from=0;;from+=pageSize){
+     const {data,error}=await window.OPQ_SUPABASE.from('products').select('*').eq('available',true).order('created_at',{ascending:false}).range(from,from+pageSize-1);
+     if(error){console.warn('Cloud catalog unavailable; using demo catalog.',error);catalog=null;return false}
+     rows.push(...(data||[]));
+     if(!data||data.length<pageSize)break;
+   }
+   catalog=rows.map(x=>({id:x.id,name:x.name,price:x.price_kes,category:x.category,sizes:normalizeProductSizes(x.sizes),description:x.description||'',new:!!x.is_new,featured:!!x.featured,image:x.image_url||'',available:x.available!==false,stockQuantity:x.stock_quantity,lowStockThreshold:x.low_stock_threshold}));
+   productRatings={};productReviews={};
+   const {data:reviews,error:reviewError}=await window.OPQ_SUPABASE.from('product_reviews').select('product_id,rating,review_text,reviewer_name,created_at').eq('is_approved',true).not('product_id','is',null).order('created_at',{ascending:false});
+   if(!reviewError){for(const review of reviews||[]){if(!review.product_id)continue;const key=String(review.product_id);if(!productRatings[key])productRatings[key]={sum:0,count:0};productRatings[key].sum+=Number(review.rating)||0;productRatings[key].count++;if(!productReviews[key])productReviews[key]=[];productReviews[key].push(review);}}else console.warn('Approved product reviews unavailable:',reviewError);
+   return true;
  }
  catalog=null;
  return false;

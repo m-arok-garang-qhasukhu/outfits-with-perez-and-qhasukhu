@@ -28,11 +28,17 @@ async function isAdmin(){
   return !!data;
 }
 
+function normalizeProductSizes(value){return Array.isArray(value)?value.map(v=>String(v).trim()).filter(Boolean).join(','):String(value||'').trim()}
 async function getProducts(){
   if(!cloud()) return get();
-  const {data,error}=await window.OPQ_SUPABASE.from('products').select('*').order('created_at',{ascending:false});
-  if(error){console.error(error);alert('Could not load products: '+error.message);return []}
-  return data.map(x=>({id:x.id,name:x.name,price:x.price_kes,category:x.category,sizes:(x.sizes||[]).join(','),description:x.description||'',image:x.image_url||'',new:x.is_new,featured:x.featured,available:x.available,stockQuantity:x.stock_quantity,lowStockThreshold:x.low_stock_threshold}));
+  const pageSize=500,rows=[];
+  for(let from=0;;from+=pageSize){
+    const {data,error}=await window.OPQ_SUPABASE.from('products').select('*').order('created_at',{ascending:false}).range(from,from+pageSize-1);
+    if(error){console.error(error);alert('Could not load products: '+error.message);return []}
+    rows.push(...(data||[]));
+    if(!data||data.length<pageSize)break;
+  }
+  return rows.map(x=>({id:x.id,name:x.name,price:x.price_kes,category:x.category,sizes:normalizeProductSizes(x.sizes),description:x.description||'',image:x.image_url||'',new:x.is_new,featured:x.featured,available:x.available,stockQuantity:x.stock_quantity,lowStockThreshold:x.low_stock_threshold}));
 }
 
 async function render(){
