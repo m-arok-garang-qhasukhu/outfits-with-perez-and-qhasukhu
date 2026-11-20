@@ -117,6 +117,7 @@ async function loadAccount(){
 }
 function escapeHtml(v=''){return String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
 function customerWhatsAppButton(name,reference,kind='Order'){const message='Hello! P & Q, thanks for contacting me.\nCustomer: '+String(name||'Customer')+'\n'+kind+': '+String(reference||'');const href='https://wa.me/254799281744?text='+encodeURIComponent(message);return '<a class="btn customer-whatsapp" href="'+href+'" target="_blank" rel="noopener noreferrer">Open WhatsApp</a>';}
+$('refreshCustomerAccount').onclick=async()=>{const button=$('refreshCustomerAccount');if(!button||button.disabled)return;button.disabled=true;button.textContent='Refreshing…';try{await loadAccount();$('ordersMessage').textContent+=' Last refreshed '+new Date().toLocaleTimeString()+'.';}catch(e){$('ordersMessage').textContent='Could not refresh your account: '+e.message;}finally{button.disabled=false;button.textContent='↻ Refresh status';}};
 $('signOut').onclick=async()=>{const db=supa();if(db)await db.auth.signOut();$('ordersCard').classList.add('hidden');$('authCard').classList.remove('hidden');$('authMessage').textContent='You have signed out.'};
 (async()=>{const db=supa();if(!db){$('authMessage').textContent='Store connection unavailable. Please contact the store.';return}
  await loadAccount();
