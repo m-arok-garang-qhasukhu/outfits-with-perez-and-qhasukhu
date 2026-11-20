@@ -31,7 +31,7 @@ async function loadCatalog(){
 }
 function saveProducts(p){localStorage.setItem(KEY,JSON.stringify(p))}
 if(!localStorage.getItem(KEY))saveProducts(seed);
-let state={filter:'All',search:'',sort:'featured',inStockOnly:false,minPrice:'',maxPrice:'',size:''}, cart=JSON.parse(localStorage.getItem(CART)||'[]');
+let state={filter:'All',search:'',sort:'featured',inStockOnly:false,minPrice:'',maxPrice:'',size:'',page:1}, cart=JSON.parse(localStorage.getItem(CART)||'[]');
 let savedProducts=[];try{savedProducts=JSON.parse(localStorage.getItem(SAVED)||'[]').map(String)}catch{savedProducts=[]}
 let recentlyViewed=[];try{recentlyViewed=JSON.parse(localStorage.getItem(RECENT)||'[]').map(String).slice(0,4)}catch{recentlyViewed=[]}
 function saveFavorites(){localStorage.setItem(SAVED,JSON.stringify(savedProducts));const count=document.getElementById('savedCount');if(count)count.textContent=savedProducts.length;}
@@ -43,6 +43,17 @@ function renderRecentlyViewed(){
  const items=recentlyViewed.map(id=>products().find(p=>String(p.id)===id)).filter(Boolean).slice(0,4);
  wrap.hidden=!items.length;
  target.innerHTML=items.map(p=>`<button class="recent-view-card" type="button" onclick='quickView(${JSON.stringify(String(p.id))})'><span class="recent-view-thumb">${p.image?`<img src="${escapeReviewText(p.image)}" alt="">`:'<span>P/Q</span>'}</span><span class="recent-view-copy"><strong>${escapeReviewText(p.name)}</strong><small>${money(p.price)}</small></span><span class="recent-view-arrow" aria-hidden="true">↗</span></button>`).join('');
+}
+function renderCatalogPagination(totalPages){
+ const host=document.getElementById('catalogPagination');if(!host)return;
+ if(totalPages<=1){host.innerHTML='';host.hidden=true;return;}
+ host.hidden=false;
+ const button=(label,page,disabled=false,current=false)=>`<button type="button" class="catalog-page-btn ${current?'active':''}" data-page="${page}" ${disabled?'disabled':''} ${current?'aria-current="page"':''}>${label}</button>`;
+ const pages=[];for(let n=1;n<=totalPages;n++){if(n===1||n===totalPages||Math.abs(n-state.page)<=1)pages.push(n);}
+ let markup=button('Previous',state.page-1,state.page===1);
+ let previous=0;for(const n of pages){if(previous&&n-previous>1)markup+='<span class="catalog-page-gap" aria-hidden="true">…</span>';markup+=button(String(n),n,false,n===state.page);previous=n;}
+ markup+=button('Next',state.page+1,state.page===totalPages);host.innerHTML=markup;
+ host.querySelectorAll('button[data-page]').forEach(b=>b.addEventListener('click',()=>{const next=Number(b.dataset.page);if(next<1||next>totalPages||next===state.page)return;state.page=next;render();document.getElementById('catalog-refinements')?.scrollIntoView({behavior:'smooth',block:'start'});}));
 }
 function render(){
  let p=products().filter(x=>{
@@ -58,8 +69,9 @@ function render(){
  else if(state.sort==='rating')p.sort((a,b)=>{const ra=productRatings[String(a.id)]||{sum:0,count:0},rb=productRatings[String(b.id)]||{sum:0,count:0};return (rb.count?rb.sum/rb.count:0)-(ra.count?ra.sum/ra.count:0)||rb.count-ra.count});
  else if(state.sort==='name')p.sort((a,b)=>String(a.name).localeCompare(String(b.name)));
  else p.sort((a,b)=>Number(!!b.featured)-Number(!!a.featured));
- grid.innerHTML=p.map(x=>`<article class="product-card"><div class="product-image">${x.image?`<img src="${x.image}" alt="${x.name}">`:`<div class="placeholder">${x.category==='Men'?'M':'W'}</div>`}${x.new?'<span class="badge">NEW</span>':''}<button class="favorite-btn ${savedProducts.includes(String(x.id))?'is-saved':''}" type="button" aria-label="${savedProducts.includes(String(x.id))?'Remove from':'Save to'} favourites" aria-pressed="${savedProducts.includes(String(x.id))}" onclick='toggleFavorite(${JSON.stringify(String(x.id))})'>${savedProducts.includes(String(x.id))?'♥':'♡'}</button>${x.stockQuantity===0?'<span class="stock-badge out">OUT OF STOCK</span>':x.stockQuantity!==null&&x.stockQuantity!==undefined&&x.stockQuantity<=Number(x.lowStockThreshold??3)?'<span class="stock-badge low">LOW STOCK</span>':''}<button class="quick" ${x.stockQuantity===0?'disabled':''} onclick='quickView(${JSON.stringify(String(x.id))})'>${x.stockQuantity===0?'OUT OF STOCK':'QUICK VIEW'}</button></div><div class="product-info"><h3>${x.name}</h3><div class="product-meta"><span>${x.category}</span><span class="price">${money(x.price)}</span></div><div class="product-rating" aria-label="Customer rating">${productRatings[String(x.id)] ? "★ "+(productRatings[String(x.id)].sum/productRatings[String(x.id)].count).toFixed(1)+" · "+productRatings[String(x.id)].count+" review"+(productRatings[String(x.id)].count===1?"":"s") : "No reviews yet"}</div></div></article>`).join('');
- const count=document.getElementById('catalogResultCount');if(count)count.textContent=`Showing ${p.length} of ${products().length} ${products().length===1?'piece':'pieces'}`;
+ const pageSize=24,totalPages=Math.max(1,Math.ceil(p.length/pageSize));state.page=Math.min(Math.max(1,state.page),totalPages);const start=(state.page-1)*pageSize;const visible=p.slice(start,start+pageSize);
+ grid.innerHTML=visible.map(x=>`<article class="product-card"><div class="product-image">${x.image?`<img src="${x.image}" alt="${x.name}">`:`<div class="placeholder">${x.category==='Men'?'M':'W'}</div>`}${x.new?'<span class="badge">NEW</span>':''}<button class="favorite-btn ${savedProducts.includes(String(x.id))?'is-saved':''}" type="button" aria-label="${savedProducts.includes(String(x.id))?'Remove from':'Save to'} favourites" aria-pressed="${savedProducts.includes(String(x.id))}" onclick='toggleFavorite(${JSON.stringify(String(x.id))})'>${savedProducts.includes(String(x.id))?'♥':'♡'}</button>${x.stockQuantity===0?'<span class="stock-badge out">OUT OF STOCK</span>':x.stockQuantity!==null&&x.stockQuantity!==undefined&&x.stockQuantity<=Number(x.lowStockThreshold??3)?'<span class="stock-badge low">LOW STOCK</span>':''}<button class="quick" ${x.stockQuantity===0?'disabled':''} onclick='quickView(${JSON.stringify(String(x.id))})'>${x.stockQuantity===0?'OUT OF STOCK':'QUICK VIEW'}</button></div><div class="product-info"><h3>${x.name}</h3><div class="product-meta"><span>${x.category}</span><span class="price">${money(x.price)}</span></div><div class="product-rating" aria-label="Customer rating">${productRatings[String(x.id)] ? "★ "+(productRatings[String(x.id)].sum/productRatings[String(x.id)].count).toFixed(1)+" · "+productRatings[String(x.id)].count+" review"+(productRatings[String(x.id)].count===1?"":"s") : "No reviews yet"}</div></div></article>`).join('');
+ const count=document.getElementById('catalogResultCount');if(count)count.textContent=p.length?`Showing ${start+1}–${Math.min(start+pageSize,p.length)} of ${p.length} matching pieces (${products().length} listed)`: `No matching pieces (${products().length} listed)`;renderCatalogPagination(totalPages);
  empty.textContent=state.filter==='Saved'?'You have not saved any favourites yet. Tap the heart on a piece to keep it here.':'No pieces match your search yet.';
  empty.hidden=!!p.length;saveFavorites();renderCart();renderRecentlyViewed();
 }

@@ -590,3 +590,6 @@ footer a:hover{color:#fff}
 
 /* Storefront size selector */
 .catalog-size-filter{display:flex;align-items:center;gap:8px;color:#142b4a;font-size:12px;font-weight:800}.catalog-size-filter select{min-width:112px;padding:10px 28px 10px 10px;border:1px solid #c9d1dc;border-radius:8px;background:#fffdfb;color:#142b4a;font:inherit;font-weight:700}.catalog-size-filter select:focus{outline:2px solid #76243d;outline-offset:1px}@media(max-width:640px){.catalog-size-filter{width:100%;justify-content:space-between}.catalog-size-filter select{flex:1;max-width:180px}}
+
+/* Storefront catalogue pagination */
+.catalog-pagination{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:7px;margin:28px auto 12px}.catalog-page-btn{min-width:38px;height:38px;padding:0 12px;border:1px solid #d7dce4;border-radius:7px;background:#fff;color:#142b4a;font:600 12px inherit;cursor:pointer}.catalog-page-btn:hover:not(:disabled),.catalog-page-btn.active{background:#142b4a;color:#fff;border-color:#142b4a}.catalog-page-btn:disabled{opacity:.4;cursor:not-allowed}.catalog-page-gap{padding:0 4px;color:#7a8492}@media(max-width:520px){.catalog-pagination{gap:5px}.catalog-page-btn{min-width:34px;height:36px;padding:0 9px}}
