@@ -546,3 +546,11 @@ footer a:hover{color:#fff}
 .review-status-stars{display:inline-flex;gap:2px;color:#d4d4d4;font-size:19px;line-height:1;letter-spacing:0}
 .review-status-stars .is-filled{color:#d4a017;text-shadow:0 0 1px #9a6b00}
 .review-status-rating>span:last-child{font-size:12px;color:#333}
+
+
+/* Public storefront customer review stars: gold overrides older maroon palette rules */
+.public-homepage .reviews-section .review-stars,
+.public-homepage .review-card .review-stars{
+  color:#d4a017 !important;
+  text-shadow:0 0 1px #9a6b00;
+}
