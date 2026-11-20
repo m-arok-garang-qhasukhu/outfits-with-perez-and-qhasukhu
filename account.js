@@ -100,6 +100,30 @@ function renderTailoringReviewForRequest(id){
  return '<div class="review-form"><label>Rate your tailoring experience <select id="tailoring-rating-'+id+'"><option value="5">5 stars</option><option value="4">4 stars</option><option value="3">3 stars</option><option value="2">2 stars</option><option value="1">1 star</option></select></label><textarea id="tailoring-review-'+id+'" rows="2" placeholder="Share your tailoring experience (5–1200 characters)"></textarea><button type="button" data-request-id="'+id+'" onclick="submitTailoringReview(this.dataset.requestId)">Submit verified review</button></div>';
 }
 
+async function loadCustomerNotifications(db=supa()){
+ const host=$('customerNotificationsList');if(!host)return;
+ host.innerHTML='<p class="muted">Checking for updates…</p>';
+ const {data,error}=await db.from('customer_notifications').select('id,title,message,record_type,record_id,created_at,read_at').order('created_at',{ascending:false}).limit(40);
+ if(error){host.innerHTML='<p class="muted">Notifications could not be loaded: '+escapeHtml(error.message)+'</p>';return;}
+ const rows=data||[],unread=rows.filter(n=>!n.read_at).length;
+ const count=$('customerUnreadCount');if(count)count.textContent=unread+' unread';
+ const markAll=$('markAllNotificationsRead');if(markAll)markAll.disabled=unread===0;
+ host.innerHTML=rows.length?rows.map(n=>'<article class="customer-notification '+(!n.read_at?'unread':'')+'"><div><strong>'+escapeHtml(n.title)+'</strong><p>'+escapeHtml(n.message)+'</p><small>'+new Date(n.created_at).toLocaleString()+'</small></div>'+(!n.read_at?'<button type="button" onclick="markCustomerNotificationRead(\''+n.id+'\')">Mark as read</button>':'<small>Read</small>')+'</article>').join(''):'<p class="muted">You’re all caught up. New order and tailoring updates will appear here.</p>';
+}
+window.markCustomerNotificationRead=async id=>{
+ const db=supa();if(!db)return;
+ const {error}=await db.rpc('mark_my_customer_notification_read',{p_notification_id:id});
+ if(error){$('customerNotificationsList').insertAdjacentHTML('afterbegin','<p class="muted">Could not update notification: '+escapeHtml(error.message)+'</p>');return;}
+ await loadCustomerNotifications(db);
+};
+const markAllNotificationsButton=$('markAllNotificationsRead');
+if(markAllNotificationsButton)markAllNotificationsButton.onclick=async()=>{
+ const db=supa();if(!db)return;
+ markAllNotificationsButton.disabled=true;markAllNotificationsButton.textContent='Updating…';
+ try{const {error}=await db.rpc('mark_all_my_customer_notifications_read');if(error)throw error;await loadCustomerNotifications(db);}
+ catch(e){$('customerNotificationsList').insertAdjacentHTML('afterbegin','<p class="muted">Could not update notifications: '+escapeHtml(e.message)+'</p>');}
+ finally{markAllNotificationsButton.textContent='Mark all as read';}
+};
 async function loadAccount(){
  const db=supa();if(!db)return;
  const {data:{session},error:sessionError}=await db.auth.getSession();if(sessionError)throw sessionError;
@@ -108,7 +132,7 @@ async function loadAccount(){
  $('authCard').classList.add('hidden');$('ordersCard').classList.remove('hidden');ensureCustomerDashboardTools();$('ordersMessage').textContent='Loading your orders…';
  const {data:orders,error}=await db.from('orders').select('id,customer_name,status,payment_status,total_kes,created_at,archived_at,cancellation_status,cancellation_admin_note,order_items(id,product_id,product_name,quantity,size,unit_price_kes)').order('created_at',{ascending:false}).limit(150);
  if(error){$('ordersMessage').textContent='Could not load your orders: '+error.message;return}
- window.customerOrdersCache=orders;await refreshCustomerReviewStatuses();const active=orders.filter(o=>!o.archived_at),archived=orders.filter(o=>o.archived_at);updateCustomerOverview(orders,window.customerTailoringCache||[]);
+ window.customerOrdersCache=orders;await loadCustomerNotifications(db);await refreshCustomerReviewStatuses();const active=orders.filter(o=>!o.archived_at),archived=orders.filter(o=>o.archived_at);updateCustomerOverview(orders,window.customerTailoringCache||[]);
  $('ordersMessage').textContent=active.length+' active order(s); '+archived.length+' archived. Delivered and Cancelled orders can be archived.';
  $('ordersList').innerHTML=active.map(o=>{const ref=String(o.id).slice(0,8).toUpperCase();const stage=labels[o.status]||String(o.status).replaceAll('_',' ');const items=(o.order_items||[]).map(i=>`${escapeHtml(i.product_name)}${i.size?' · Size '+escapeHtml(i.size):''} × ${i.quantity} — ${money(i.unit_price_kes*i.quantity)}`).join('<br>')||'Items unavailable';return `<article class="account-order"><div class="order-top"><strong>Order #${ref}</strong><span class="order-stage">${escapeHtml(stage)}</span></div>${customerOrderProgress(o.status)}<p class="muted">Placed ${new Date(o.created_at).toLocaleString()} · Payment: ${escapeHtml(o.payment_status)}</p><div class="order-items">${items}</div><p><strong>Total: ${money(o.total_kes)}</strong></p>${customerWhatsAppButton(o.customer_name||savedName,'#'+ref,'Order')}${['pending','confirmed','awaiting_payment'].includes(o.status)&&!['requested','approved'].includes(o.cancellation_status)?`<button class="btn" type="button" onclick="requestCancellation('${o.id}')">Request cancellation</button>`:''}${o.cancellation_status==='requested'? `<p class="muted">Cancellation request pending admin review. <button type="button" onclick="withdrawCancellation('${o.id}')">Withdraw request</button></p>`:''}${o.cancellation_status==='rejected'?`<p class="muted">Cancellation request declined: ${escapeHtml(o.cancellation_admin_note||'Please contact support.')}</p>`:''}${o.cancellation_status==='approved'?`<p class="muted">Cancellation approved. Any refund or deposit return is handled separately.</p>`:''}${['in_progress','processing','ready','out_for_delivery'].includes(o.status)?`<p class="muted">For a cancellation or change at this stage, please contact support for an individual review.</p>`:''}${o.status==='delivered'?(o.order_items||[]).map(i=>renderProductReviewForItem(i)).join(''):''}${['delivered','cancelled'].includes(o.status)?`<button class="btn archive-action" type="button" onclick="archiveOwnOrder('${o.id}')">Archive order</button>`:''}</article>`}).join('')||'<p class="muted">No active orders. Check your archived orders below if you have archived any.</p>';
  const archivedOrdersBox=$('archivedOrdersList');
