@@ -2,7 +2,7 @@ const $=id=>document.getElementById(id);
 const supa=()=>window.OPQ_CLOUD?.ready&&window.OPQ_SUPABASE?window.OPQ_SUPABASE:null;
 let mode='signin';
 let passwordRecoveryMode=false;
-const accountRedirectUrl=()=>new URL('/account.html',location.origin).toString();
+const accountRedirectUrl=()=>new URL('/account.html?password-reset=1',location.origin).toString();
 function showPasswordReset(message=''){ $('authCard').classList.remove('hidden');$('ordersCard').classList.add('hidden');$('authForm').classList.add('hidden');$('resetPasswordForm').classList.remove('hidden');$('authHeading').textContent='Reset your password';$('resetPasswordMessage').textContent=message; }
 const labels={pending:'Pending review',confirmed:'Confirmed',awaiting_payment:'Awaiting payment',in_progress:'In progress / tailoring',ready:'Ready for collection',out_for_delivery:'Out for delivery',delivered:'Delivered',cancelled:'Cancelled'};
 const money=n=>'KSh '+Number(n||0).toLocaleString('en-KE');
