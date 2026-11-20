@@ -159,9 +159,9 @@ $('customerOrderStatus')?.addEventListener('change',applyCustomerOrderFilters);
 $('refreshCustomerAccount').onclick=async()=>{const button=$('refreshCustomerAccount');if(!button||button.disabled)return;button.disabled=true;button.textContent='Refreshing…';try{await loadAccount();$('ordersMessage').textContent+=' Last refreshed '+new Date().toLocaleTimeString()+'.';}catch(e){$('ordersMessage').textContent='Could not refresh your account: '+e.message;}finally{button.disabled=false;button.textContent='↻ Refresh status';}};
 $('signOut').onclick=async()=>{const db=supa();if(db)await db.auth.signOut();$('ordersCard').classList.add('hidden');$('authCard').classList.remove('hidden');$('authMessage').textContent='You have signed out.'};
 (async()=>{const db=supa();if(!db){$('authMessage').textContent='Store connection unavailable. Please contact the store.';return}
- await loadAccount();
   const params=new URLSearchParams(location.search),hashParams=new URLSearchParams(location.hash.replace(/^#/,''));passwordRecoveryMode=params.get('type')==='recovery'||params.get('password-reset')==='1'||hashParams.get('type')==='recovery';
   db.auth.onAuthStateChange((event,session)=>{if(event==='PASSWORD_RECOVERY'){passwordRecoveryMode=true;showPasswordReset();}else if(session&&!passwordRecoveryMode)setTimeout(()=>loadAccount(),0);else if(!session){$('ordersCard').classList.add('hidden');$('authCard').classList.remove('hidden')}});
+  await loadAccount();
  if(params.get('auth')==='confirmed'){const {data:{session:confirmedSession}}=await db.auth.getSession();if(confirmedSession){$('ordersMessage').textContent='Email confirmed successfully. Your account is ready.';}else{$('authMessage').textContent='Your email has been confirmed. Please sign in to continue.';}}if(params.get('return')==='checkout')$('authMessage').textContent='Sign in or create an account to continue checkout. After signing in, return to your bag and submit your order.';
 })();
 
