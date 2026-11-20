@@ -21,7 +21,7 @@ async function loadCatalog(){
 }
 function saveProducts(p){localStorage.setItem(KEY,JSON.stringify(p))}
 if(!localStorage.getItem(KEY))saveProducts(seed);
-let state={filter:'All',search:'',sort:'featured',inStockOnly:false,minPrice:'',maxPrice:''}, cart=JSON.parse(localStorage.getItem(CART)||'[]');
+let state={filter:'All',search:'',sort:'featured',inStockOnly:false,minPrice:'',maxPrice:'',size:''}, cart=JSON.parse(localStorage.getItem(CART)||'[]');
 let savedProducts=[];try{savedProducts=JSON.parse(localStorage.getItem(SAVED)||'[]').map(String)}catch{savedProducts=[]}
 let recentlyViewed=[];try{recentlyViewed=JSON.parse(localStorage.getItem(RECENT)||'[]').map(String).slice(0,4)}catch{recentlyViewed=[]}
 function saveFavorites(){localStorage.setItem(SAVED,JSON.stringify(savedProducts));const count=document.getElementById('savedCount');if(count)count.textContent=savedProducts.length;}
@@ -38,9 +38,10 @@ function render(){
  let p=products().filter(x=>{
   const categoryMatch=state.filter==='All'||(state.filter==='New'?!!x.new:state.filter==='Saved'?savedProducts.includes(String(x.id)):x.category===state.filter);
   const searchMatch=!state.search||(x.name+' '+x.category+' '+(x.description||'')).toLowerCase().includes(state.search.toLowerCase());
+  const sizeMatch=!state.size||(x.sizes||'').split(',').map(v=>v.trim().toLowerCase()).includes(state.size.toLowerCase());
   const known=x.stockQuantity!==null&&x.stockQuantity!==undefined;
   const price=Number(x.price)||0;const aboveMin=state.minPrice===''||price>=Number(state.minPrice);const belowMax=state.maxPrice===''||price<=Number(state.maxPrice);
-  return categoryMatch&&searchMatch&&aboveMin&&belowMax&&(!state.inStockOnly||(known&&Number(x.stockQuantity)>0));
+  return categoryMatch&&searchMatch&&sizeMatch&&aboveMin&&belowMax&&(!state.inStockOnly||(known&&Number(x.stockQuantity)>0));
  });
  if(state.sort==='price-asc')p.sort((a,b)=>Number(a.price)-Number(b.price));
  else if(state.sort==='price-desc')p.sort((a,b)=>Number(b.price)-Number(a.price));
@@ -56,6 +57,7 @@ document.querySelectorAll('.filter').forEach(b=>b.onclick=()=>{document.querySel
 document.querySelectorAll('.category-tile').forEach(b=>b.onclick=()=>{document.querySelector(`[data-filter="${b.dataset.category}"]`).click();document.getElementById('shop').scrollIntoView()});
 document.getElementById('searchInput').oninput=e=>{state.search=e.target.value;render()};
 document.getElementById('sortSelect')?.addEventListener('change',e=>{state.sort=e.target.value;render()});
+document.getElementById('sizeSelect')?.addEventListener('change',e=>{state.size=e.target.value;render()});
 document.getElementById('inStockOnly')?.addEventListener('change',e=>{state.inStockOnly=e.target.checked;render()});
 ['minPrice','maxPrice'].forEach(id=>document.getElementById(id)?.addEventListener('input',e=>{state[id==='minPrice'?'minPrice':'maxPrice']=e.target.value;const min=Number(state.minPrice),max=Number(state.maxPrice);const maxInput=document.getElementById('maxPrice');if(state.minPrice!==''&&state.maxPrice!==''&&min>max){maxInput.setCustomValidity('Maximum price must be at least the minimum price.')}else{maxInput.setCustomValidity('')}render()}));
 document.getElementById('clearPriceFilter')?.addEventListener('click',()=>{state.minPrice='';state.maxPrice='';document.getElementById('minPrice').value='';document.getElementById('maxPrice').value='';document.getElementById('maxPrice').setCustomValidity('');render()});
@@ -140,4 +142,4 @@ const faqAnswers=[
 document.getElementById('faqAsk')?.addEventListener('click',()=>{const q=document.getElementById('faqQuestion').value.trim().toLowerCase();const hit=faqAnswers.find(x=>x.keys.some(k=>q.includes(k)));document.getElementById('faqAnswer').textContent=q?(hit?hit.answer:'I could not confidently answer that. Please contact our team on WhatsApp at +254 799 281 744 and we will help.'): 'Please type a question first.';});
 async function loadPublicReviews(){const box=document.getElementById('publicReviews');if(!box||!window.OPQ_CLOUD?.ready||!window.OPQ_SUPABASE)return;const {data,error}=await window.OPQ_SUPABASE.from('product_reviews').select('reviewer_name,rating,review_text,products(name),tailoring_requests(garment_type)').eq('is_approved',true).order('created_at',{ascending:false}).limit(6);if(error||!data?.length)return;box.innerHTML=data.map(r=>{const subject=r.products?.name||('Custom tailoring · '+(r.tailoring_requests?.garment_type||'P&Q tailoring'));return `<article class="review-card"><div class="review-stars" aria-label="${r.rating} out of 5 stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div><p>“${String(r.review_text).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}”</p><b>${String(r.reviewer_name).replace(/[&<>"']/g,'')}</b><small>Verified customer · ${String(subject).replace(/[&<>"']/g,'')}</small></article>`}).join('');}
 const guideBackdrop=document.getElementById('guideBackdrop');document.getElementById('guideOpen')?.addEventListener('click',e=>{e.preventDefault();guideBackdrop.hidden=false});document.getElementById('guideClose')?.addEventListener('click',()=>guideBackdrop.hidden=true);guideBackdrop?.addEventListener('click',e=>{if(e.target===guideBackdrop)guideBackdrop.hidden=true});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&guideBackdrop)guideBackdrop.hidden=true});
-(async()=>{await loadCatalog();render();await loadPublicReviews();const sharedProduct=new URLSearchParams(location.search).get('product');if(sharedProduct&&products().some(p=>String(p.id)===String(sharedProduct)))quickView(sharedProduct);if(new URLSearchParams(location.search).get('checkout')==='1'){openCart();document.getElementById('checkoutStart').click()}})();
+(async()=>{await loadCatalog();const sizeSelect=document.getElementById('sizeSelect');if(sizeSelect){const sizes=[...new Set(products().flatMap(p=>(p.sizes||'').split(',').map(v=>v.trim()).filter(Boolean)))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true,sensitivity:'base'}));sizeSelect.innerHTML='<option value="">All sizes</option>'+sizes.map(size=>`<option value="${escapeReviewText(size)}">${escapeReviewText(size)}</option>`).join('');}render();await loadPublicReviews();const sharedProduct=new URLSearchParams(location.search).get('product');if(sharedProduct&&products().some(p=>String(p.id)===String(sharedProduct)))quickView(sharedProduct);if(new URLSearchParams(location.search).get('checkout')==='1'){openCart();document.getElementById('checkoutStart').click()}})();
