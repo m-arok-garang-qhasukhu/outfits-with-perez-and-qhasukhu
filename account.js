@@ -77,7 +77,9 @@ function reviewStatusMarkup(r,includeText=false){
  const type=r.review_type==='tailoring'?'Tailoring review':'Product review';
  const state=r.is_approved?'Published':'Awaiting approval';
  const date=r.created_at?new Date(r.created_at).toLocaleString():'Just submitted';
- return '<div class="review-status-card"><div class="review-status-top"><strong>'+type+' · '+escapeHtml(r.subject||'Your purchase')+'</strong><span class="review-status-pill '+(r.is_approved?'published':'pending')+'">'+state+'</span></div><p>Rating: '+escapeHtml(r.rating)+'/5 stars</p>'+(includeText?'<p class="review-status-copy">'+escapeHtml(r.review_text||'')+'</p>':'')+'<small>Submitted '+escapeHtml(date)+'</small></div>';
+ const rating=Math.max(0,Math.min(5,Number(r.rating)||0));
+  const stars='<span class="review-status-stars" aria-label="'+rating+' out of 5 stars">'+Array.from({length:5},(_,i)=>'<span class="'+(i<rating?'is-filled':'')+'">★</span>').join('')+'</span>';
+  return '<div class="review-status-card"><div class="review-status-top"><strong>'+type+' · '+escapeHtml(r.subject||'Your purchase')+'</strong><span class="review-status-pill '+(r.is_approved?'published':'pending')+'">'+state+'</span></div><p class="review-status-rating">'+stars+' <span>'+rating+'/5</span></p>'+(includeText?'<p class="review-status-copy">'+escapeHtml(r.review_text||'')+'</p>':'')+'<small>Submitted '+escapeHtml(date)+'</small></div>';
 }
 function renderCustomerReviewHistory(){
  const host=$('customerReviewsList');if(!host)return;
