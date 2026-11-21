@@ -66,10 +66,11 @@ function ensureCustomerDashboardNavigation(){
   {id:'tailoring',label:'Tailoring',nodes:['tailoringCard']},
   {id:'reviews',label:'My reviews',nodes:['customerReviewsPanel']}
  ];
+ const requestedHash=location.hash.replace(/^#/,'');const initialPage=requestedHash==='tailoringCard'?'tailoring':(['ordersList','archivedOrdersList','customerOrderSearch'].includes(requestedHash)?'orders':pages.some(p=>p.id===requestedHash)?requestedHash:'overview');
  const wrappers={};
  pages.forEach((page,index)=>{
-  const button=document.createElement('button');button.type='button';button.textContent=page.label;button.dataset.customerPage=page.id;button.classList.toggle('active',index===0);button.setAttribute('aria-current',index===0?'page':'false');nav.append(button);
-  const wrapper=document.createElement('section');wrapper.className='customer-dashboard-page';wrapper.dataset.customerPageContent=page.id;wrapper.hidden=index!==0;wrappers[page.id]=wrapper;
+  const button=document.createElement('button');button.type='button';button.textContent=page.label;button.dataset.customerPage=page.id;button.classList.toggle('active',page.id===initialPage);button.setAttribute('aria-current',page.id===initialPage?'page':'false');nav.append(button);
+  const wrapper=document.createElement('section');wrapper.className='customer-dashboard-page';wrapper.dataset.customerPageContent=page.id;wrapper.hidden=page.id!==initialPage;wrappers[page.id]=wrapper;
  });
  const header=host.querySelector('.order-top');header?.after(nav);
  const pagesHost=document.createElement('div');pagesHost.id='customerDashboardPages';nav.after(pagesHost);
@@ -81,7 +82,7 @@ function ensureCustomerDashboardNavigation(){
   const button=event.target.closest('button[data-customer-page]');if(!button)return;
   const selected=button.dataset.customerPage;
   nav.querySelectorAll('button').forEach(b=>{const active=b===button;b.classList.toggle('active',active);b.setAttribute('aria-current',active?'page':'false')});
-  Object.entries(wrappers).forEach(([id,wrapper])=>wrapper.hidden=id!==selected);
+  Object.entries(wrappers).forEach(([id,wrapper])=>wrapper.hidden=id!==selected);history.replaceState(null,'','#'+(selected==='tailoring'?'tailoringCard':selected==='orders'?'ordersList':selected));
  });
 }
 function updateCustomerOverview(orders=[],tailoring=[]){
