@@ -81,6 +81,7 @@ async function renderOrders(){
  const statusFilter=$('orderStatusFilter')?.value||'all',paymentFilter=$('orderPaymentFilter')?.value||'all',term=($('orderQuickSearch')?.value||'').trim().toLowerCase();
  const visible=active.filter(o=>(statusFilter==='all'||o.status===statusFilter)&&(paymentFilter==='all'||o.payment_status===paymentFilter)&&(!term||[o.id,o.customer_name,o.phone,o.delivery_address].some(v=>String(v||'').toLowerCase().includes(term))));
  $('orderCount').textContent='('+visible.length+' shown / '+active.length+' active)';
+ $('activeOrderTabCount').textContent='('+active.length+')';$('archivedOrderTabCount').textContent='('+archived.length+')';
  tbody.innerHTML=visible.map(o=>{
   const items=(o.order_items||[]).map(i=>`${esc(i.product_name)}${i.size?' · '+esc(i.size):''} × ${i.quantity}`).join('<br>')||'—';
   const canArchive=['delivered','cancelled'].includes(o.status);
@@ -175,6 +176,7 @@ async function renderTailoring(){
  const totalPages=Math.max(1,Math.ceil(visible.length/tailoringAdminPageSize));tailoringAdminPage=Math.min(Math.max(1,tailoringAdminPage),totalPages);
  const pageStart=(tailoringAdminPage-1)*tailoringAdminPageSize,pageRows=visible.slice(pageStart,pageStart+tailoringAdminPageSize);
  const count=$('tailoringCount');if(count)count.textContent=visible.length+' matching / '+active.length+' active';
+ $('activeTailoringTabCount').textContent='('+active.length+')';$('archivedTailoringTabCount').textContent='('+archived.length+')';
  const html=await Promise.all(pageRows.map(async r=>{
   let preview='';
   if(r.reference_image_url){
@@ -341,9 +343,23 @@ async function init(){
   } else await render();
 }
 $('loginForm').onsubmit=async e=>{e.preventDefault();if(!cloud()){ $('loginMsg').textContent='Cloud connection unavailable. Please contact the site administrator.'; return; } const {error}=await window.OPQ_SUPABASE.auth.signInWithPassword({email:$('loginEmail').value.trim(),password:$('loginPassword').value});$('loginMsg').textContent=error?error.message:'Signed in. Checking admin access…'};
-$('logoutBtn').onclick=()=>window.OPQ_SUPABASE.auth.signOut();$('refreshDashboard')?.addEventListener('click',refreshDashboardOverview);$('adminSearch')?.addEventListener('input',e=>{const q=e.target.value.trim().toLowerCase();document.querySelectorAll('.admin-dashboard-page:not(.admin-page-hidden) .admin-table tbody tr').forEach(row=>{row.hidden=!!q&&!row.textContent.toLowerCase().includes(q)})});setupAdminPageNavigation();
+$('logoutBtn').onclick=()=>window.OPQ_SUPABASE.auth.signOut();$('refreshDashboard')?.addEventListener('click',refreshDashboardOverview);$('adminSearch')?.addEventListener('input',e=>{const q=e.target.value.trim().toLowerCase();document.querySelectorAll('.admin-dashboard-page:not(.admin-page-hidden) .admin-subpage:not([hidden]) .admin-table tbody tr').forEach(row=>{row.hidden=!!q&&!row.textContent.toLowerCase().includes(q)})});setupAdminPageNavigation();
+setupAdminSubpageNavigation();
 $('productQuickSearch')?.addEventListener('input',()=>{productAdminPage=1;render()});
 document.querySelectorAll('.dashboard-search-button[data-search-target]').forEach(button=>button.addEventListener('click',()=>{const input=$(button.dataset.searchTarget);if(!input)return;input.dispatchEvent(new Event('input',{bubbles:true}));input.focus();}));
+
+function setupAdminSubpageNavigation(){
+ document.querySelectorAll('.admin-subpage-nav').forEach(nav=>{
+  if(nav.dataset.ready)return;nav.dataset.ready='1';
+  const panel=nav.parentElement;
+  nav.querySelectorAll('button[data-admin-subpage]').forEach(button=>button.addEventListener('click',()=>{
+   const target=button.dataset.adminSubpage;
+   nav.querySelectorAll('button[data-admin-subpage]').forEach(item=>{const active=item===button;item.classList.toggle('active',active);if(active)item.setAttribute('aria-current','page');else item.removeAttribute('aria-current')});
+   panel.querySelectorAll(':scope > .admin-subpage').forEach(page=>{page.hidden=page.id!==target});
+   $('adminSearch')?.dispatchEvent(new Event('input',{bubbles:true}));
+  }));
+ });
+}
 function setupAdminPageNavigation(){
  const nav=document.querySelector('.admin-nav');if(!nav||nav.dataset.pageNavigationReady)return;nav.dataset.pageNavigationReady='1';
  const pages=[
