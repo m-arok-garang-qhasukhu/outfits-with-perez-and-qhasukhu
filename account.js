@@ -84,6 +84,8 @@ function ensureCustomerDashboardNavigation(){
  if(orderList)activeOrders.append(orderList);if(orderEmpty)activeOrders.append(orderEmpty);
  if(orderArchive){const archiveList=orderArchive.querySelector('#archivedOrdersList');if(archiveList)archivedOrders.append(archiveList);orderArchive.remove();}
  wrappers.orders.append(orderTabs,activeOrders,archivedOrders);
+ $('customerArchivedOrderSearch')?.addEventListener('input',applyCustomerOrderFilters);
+ $('customerArchivedOrderSearchButton')?.addEventListener('click',()=>{applyCustomerOrderFilters();$('customerArchivedOrderSearch')?.focus();});
  const activateSubpage=(container,key)=>{
   if(!container)return;
   container.querySelectorAll('[data-customer-subpage]').forEach(b=>b.classList.toggle('active',b.dataset.customerSubpage===key));
