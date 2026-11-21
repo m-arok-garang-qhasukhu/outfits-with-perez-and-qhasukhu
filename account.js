@@ -25,7 +25,8 @@ $('authForm').onsubmit=async e=>{e.preventDefault();const db=supa();if(!db){$('a
  try{
   if(mode==='signup'){
    const name=$('fullName').value.trim(),phone=$('accountPhone').value.trim(),region=$('accountRegion').value,confirmPassword=$('confirmPassword').value;if(name.length<2)throw new Error('Please enter your full name.');if(!strongPassword(password))throw new Error('Choose a stronger password using at least 8 characters, a capital letter, a small letter, a number and a special character such as @ or #.');if(phone.replace(/[^0-9]/g,'').length<7)throw new Error('Please enter a valid phone number, including its country code where possible.');if(!region)throw new Error('Please choose your region / country.');if(password!==confirmPassword)throw new Error('Your passwords do not match. Please check both fields.');
-   const redirectTo=new URL('https://outfits-with-perez-and-qhasukhu.vercel.app/account.html');redirectTo.searchParams.set('auth','confirmed');const {data,error}=await db.auth.signUp({email,password,options:{data:{full_name:name,phone,region},emailRedirectTo:redirectTo.toString()}});if(error)throw error;
+  const redirectTo=new URL('/account.html',location.origin);
+redirectTo.searchParams.set('auth','confirmed');const {data,error}=await db.auth.signUp({email,password,options:{data:{full_name:name,phone,region},emailRedirectTo:redirectTo.toString()}});if(error)throw error;
    if(data.session){const p=new URLSearchParams(location.search);if(p.get('return')==='checkout'){location.href='index.html?checkout=1';return}$('authMessage').textContent='Account created. Loading your orders…';await loadAccount()}
    else $('authMessage').textContent='Account created. Check your email to confirm your address, then sign in.';
   }else{
