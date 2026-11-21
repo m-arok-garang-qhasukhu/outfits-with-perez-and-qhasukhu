@@ -140,7 +140,7 @@ function ensureCustomerDashboardNavigation(){
  });
  if(requestedHash==='archivedOrdersList')activateSubpage(wrappers.orders,'orders-archived');
  if(requestedHash==='archivedTailoringList')activateSubpage(tailoringCard,'tailoring-archived');
- const guide=document.createElement('section');guide.className='customer-account-guide';guide.innerHTML='<strong>Using your account</strong><p>Use the tabs above to move between Overview, Notifications, My orders, Tailoring and My reviews. In My orders and Tailoring, switch between Active and Archived to view each list separately. Use the search field at the top of the relevant workspace to find a record. Archived records can be restored from their Archived tab.</p>';
+ const guide=document.createElement('section');guide.className='customer-account-guide';guide.innerHTML='<strong>Using your account</strong><p>Use the tabs above to move between Overview, Notifications, My orders, Tailoring and My reviews. In My orders and Tailoring, switch between Active and Archived to view each list separately. Each list has its own search field, so you can quickly find an active or archived record by reference, product, garment, fabric or status. Archived records can be restored from their Archived tab.</p>';
  wrappers.overview.append(guide);
 }
 function updateCustomerOverview(orders=[],tailoring=[]){
