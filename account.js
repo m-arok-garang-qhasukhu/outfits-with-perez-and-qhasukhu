@@ -52,6 +52,62 @@ function ensureCustomerDashboardTools(){
  const style=document.createElement('style');style.id='customer-dashboard-tools-style';style.textContent='.customer-overview{background:#f4f9ff;border:1px solid #b8d0e8;border-radius:13px;padding:18px;margin:16px 0 22px}.customer-overview-heading{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.customer-overview-heading strong{display:block;color:#193f65;font-size:16px}.customer-overview-heading small,.overview-updated{display:block;color:#536b84;font-size:11px;margin-top:4px}.customer-stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:15px 0}.customer-stat{background:#fff;border:1px solid #c7d9eb;border-radius:9px;padding:12px}.customer-stat small{display:block;color:#536b84;font-size:11px}.customer-stat strong{display:block;color:#781f3a;font-size:25px;margin-top:4px}.customer-quick-links{display:flex;gap:8px;flex-wrap:wrap}.customer-quick-links a{color:#24527e;background:#e7f1fb;border:1px solid #c3d8ec;border-radius:20px;padding:7px 11px;text-decoration:none;font-size:11px;font-weight:700}.customer-progress{margin:13px 0 16px;padding:12px;background:#f5f9fe;border-radius:9px;border:1px solid #d7e5f2}.customer-progress-label{font-size:11px;color:#536b84;font-weight:700;margin-bottom:9px}.customer-progress-track{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}.customer-progress-step{height:6px;border-radius:9px;background:#d9e4ef}.customer-progress-step.done{background:#24527e}.customer-progress-step.current{background:#781f3a}.customer-progress-caption{font-size:10px;color:#536b84;margin-top:7px}.customer-progress.cancelled .customer-progress-caption{color:#a3263d;font-weight:700}@media(max-width:650px){.customer-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.customer-overview{padding:13px}.customer-progress{padding:10px}}';
  document.head.appendChild(style);
 }
+function ensureCustomerProfilePanel(){
+ const overview=$('customerOverview');if(!overview||$('customerProfilePanel'))return;
+ const panel=document.createElement('section');panel.id='customerProfilePanel';panel.className='customer-profile-panel';
+ panel.innerHTML='<div class="customer-profile-avatar-wrap"><div class="customer-profile-avatar" id="customerProfileAvatarFallback" aria-hidden="true">P&Q</div><img id="customerProfileAvatar" class="customer-profile-avatar hidden" alt="Your profile photo"></div><div class="customer-profile-details"><strong id="customerProfileName">Your profile</strong><small id="customerProfileEmail"></small><p>Personalise your account with a profile photo. Only you can manage your photo.</p><div class="customer-profile-actions"><label class="customer-profile-upload" for="customerProfilePhotoInput">Choose photo</label><input id="customerProfilePhotoInput" type="file" accept="image/jpeg,image/png,image/webp" hidden><button id="customerProfileRemovePhoto" type="button" class="customer-profile-remove hidden">Remove photo</button></div><small id="customerProfilePhotoStatus" role="status" aria-live="polite"></small></div>';
+ const style=document.createElement('style');style.id='customer-profile-panel-style';style.textContent='.customer-profile-panel{display:flex;align-items:center;gap:16px;margin:0 0 18px;padding:16px;background:#fff;border:1px solid #c7d9eb;border-radius:12px}.customer-profile-avatar-wrap{flex:0 0 76px;width:76px;height:76px}.customer-profile-avatar{width:76px;height:76px;border-radius:50%;object-fit:cover;display:grid;place-items:center;background:#e7f1fb;border:2px solid #b8d0e8;color:#193f65;font-size:22px;font-weight:800}.customer-profile-details{min-width:0}.customer-profile-details>strong{display:block;color:#193f65;font-size:15px}.customer-profile-details>small{display:block;color:#536b84;font-size:11px;overflow-wrap:anywhere}.customer-profile-details p{margin:5px 0 9px;color:#536b84;font-size:11px}.customer-profile-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.customer-profile-upload,.customer-profile-remove{display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:8px 12px;border:1px solid #b8cde2;border-radius:8px;background:#f2f7fc;color:#24527e;font-size:11px;font-weight:800;cursor:pointer}.customer-profile-remove{background:#fff5f7;border-color:#d9aab8;color:#781f3a}.customer-profile-panel #customerProfilePhotoStatus{margin-top:7px;color:#536b84;font-size:10px}@media(max-width:480px){.customer-profile-panel{align-items:flex-start;padding:12px;gap:12px}.customer-profile-avatar-wrap,.customer-profile-avatar{width:62px;height:62px}.customer-profile-avatar-wrap{flex-basis:62px}.customer-profile-avatar{font-size:18px}}';
+ document.head.appendChild(style);overview.insertBefore(panel,overview.firstChild);
+ const input=$('customerProfilePhotoInput');
+ if(input&&!input.dataset.bound){input.dataset.bound='1';input.addEventListener('change',uploadCustomerProfilePhoto);}
+ const remove=$('customerProfileRemovePhoto');
+ if(remove&&!remove.dataset.bound){remove.dataset.bound='1';remove.addEventListener('click',removeCustomerProfilePhoto);}
+}
+function customerProfileInitials(user){
+ const name=String(user?.user_metadata?.full_name||user?.user_metadata?.name||user?.email||'P&Q').trim();
+ return name.split(/\\s+/).filter(Boolean).slice(0,2).map(part=>part[0].toUpperCase()).join('')||'P&Q';
+}
+async function loadCustomerProfile(db,user){
+ ensureCustomerProfilePanel();if(!$('customerProfilePanel'))return;
+ $('customerProfileName').textContent=user.user_metadata?.full_name||user.user_metadata?.name||'Your profile';
+ $('customerProfileEmail').textContent=user.email||'';
+ $('customerProfileAvatarFallback').textContent=customerProfileInitials(user);
+ const path=user.user_metadata?.avatar_path;
+ const img=$('customerProfileAvatar'),fallback=$('customerProfileAvatarFallback'),remove=$('customerProfileRemovePhoto');
+ if(path){
+  const {data,error}=await db.storage.from('customer-avatars').createSignedUrl(path,3600);
+  if(!error&&data?.signedUrl){img.src=data.signedUrl;img.classList.remove('hidden');fallback.classList.add('hidden');remove.classList.remove('hidden');}
+  else{$('customerProfilePhotoStatus').textContent='Your saved photo could not be loaded. You can upload it again.';img.classList.add('hidden');fallback.classList.remove('hidden');remove.classList.remove('hidden');}
+ }else{img.removeAttribute('src');img.classList.add('hidden');fallback.classList.remove('hidden');remove.classList.add('hidden');}
+}
+async function uploadCustomerProfilePhoto(event){
+ const input=event.currentTarget,file=input.files?.[0],db=supa();if(!file)return;
+ const status=$('customerProfilePhotoStatus'),button=$('customerProfileRemovePhoto');
+ if(!db){status.textContent='The store connection is unavailable. Please try again.';input.value='';return;}
+ if(!['image/jpeg','image/png','image/webp'].includes(file.type)){status.textContent='Please choose a JPG, PNG or WEBP image.';input.value='';return;}
+ if(file.size>3*1024*1024){status.textContent='Please choose an image smaller than 3 MB.';input.value='';return;}
+ input.disabled=true;if(button)button.disabled=true;status.textContent='Uploading your photo…';
+ try{
+  const {data:{user},error:userError}=await db.auth.getUser();if(userError)throw userError;if(!user)throw new Error('Please sign in again to update your profile photo.');
+  const path=user.id+'/avatar';
+  const {error:uploadError}=await db.storage.from('customer-avatars').upload(path,file,{upsert:true,cacheControl:'3600',contentType:file.type});if(uploadError)throw uploadError;
+  const {data,error:updateError}=await db.auth.updateUser({data:{avatar_path:path}});if(updateError)throw updateError;
+  await loadCustomerProfile(db,data.user||user);status.textContent='Your profile photo has been updated.';
+ }catch(error){status.textContent=error.message||'Could not upload your profile photo.';}
+ finally{input.disabled=false;if(button)button.disabled=false;input.value='';}
+}
+async function removeCustomerProfilePhoto(){
+ const db=supa(),button=$('customerProfileRemovePhoto'),status=$('customerProfilePhotoStatus');if(!db)return;
+ button.disabled=true;status.textContent='Removing your photo…';
+ try{
+  const {data:{user},error:userError}=await db.auth.getUser();if(userError)throw userError;if(!user)throw new Error('Please sign in again.');
+  const path=user.user_metadata?.avatar_path;
+  if(path){const {error}=await db.storage.from('customer-avatars').remove([path]);if(error)throw error;}
+  const {data,error}=await db.auth.updateUser({data:{avatar_path:null}});if(error)throw error;
+  await loadCustomerProfile(db,data.user||user);status.textContent='Your profile photo has been removed.';
+ }catch(error){status.textContent=error.message||'Could not remove your profile photo.';}
+ finally{button.disabled=false;}
+}
 function ensureCustomerDashboardNavigation(){
  if($('customerDashboardNav'))return;
  const host=$('ordersCard');if(!host)return;
@@ -233,7 +289,7 @@ async function loadAccount(){
  if(passwordRecoveryMode){showPasswordReset();return}
  if(!session){$('authCard').classList.remove('hidden');$('ordersCard').classList.add('hidden');return}
  const savedName=session.user.user_metadata?.full_name||session.user.user_metadata?.name||'';if($('tailorCustomerName')&&!$('tailorCustomerName').value)$('tailorCustomerName').value=savedName;
- $('authCard').classList.add('hidden');$('ordersCard').classList.remove('hidden');ensureCustomerDashboardTools();ensureCustomerDashboardNavigation();$('ordersMessage').textContent='Loading your orders…';
+ $('authCard').classList.add('hidden');$('ordersCard').classList.remove('hidden');ensureCustomerDashboardTools();ensureCustomerProfilePanel();ensureCustomerDashboardNavigation();await loadCustomerProfile(db,session.user);$('ordersMessage').textContent='Loading your orders…';
  const orders=[];const batchSize=500;
  for(let from=0;;from+=batchSize){const {data:batch,error}=await db.from('orders').select('id,customer_name,status,payment_status,total_kes,created_at,archived_at,cancellation_status,cancellation_admin_note,order_items(id,product_id,product_name,quantity,size,unit_price_kes)').order('created_at',{ascending:false}).range(from,from+batchSize-1);if(error){$('ordersMessage').textContent='Could not load your orders: '+error.message;return;}orders.push(...(batch||[]));if(!batch||batch.length<batchSize)break;}
  window.customerOrdersCache=orders;await loadCustomerNotifications(db);await refreshCustomerReviewStatuses();const active=orders.filter(o=>!o.archived_at),archived=orders.filter(o=>o.archived_at);updateCustomerOverview(orders,window.customerTailoringCache||[]);
