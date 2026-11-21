@@ -78,6 +78,8 @@ function render(){
 document.querySelectorAll('.filter').forEach(b=>b.onclick=()=>{document.querySelectorAll('.filter').forEach(x=>x.classList.remove('active'));b.classList.add('active');state.filter=b.dataset.filter;render()});
 document.querySelectorAll('.category-tile').forEach(b=>b.onclick=()=>{document.querySelector(`[data-filter="${b.dataset.category}"]`).click();document.getElementById('shop').scrollIntoView()});
 document.getElementById('searchInput').oninput=e=>{state.search=e.target.value;render()};
+document.getElementById('catalogSearchBtn')?.addEventListener('click',()=>{const input=document.getElementById('searchInput');state.search=input.value;state.page=1;render();input.focus()});
+document.getElementById('searchInput')?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();state.search=e.currentTarget.value;state.page=1;render();e.currentTarget.blur()}});
 document.getElementById('sortSelect')?.addEventListener('change',e=>{state.sort=e.target.value;render()});
 document.getElementById('sizeSelect')?.addEventListener('change',e=>{state.size=e.target.value;render()});
 document.getElementById('inStockOnly')?.addEventListener('change',e=>{state.inStockOnly=e.target.checked;render()});
