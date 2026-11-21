@@ -84,6 +84,12 @@ function ensureCustomerDashboardNavigation(){
   nav.querySelectorAll('button').forEach(b=>{const active=b===button;b.classList.toggle('active',active);b.setAttribute('aria-current',active?'page':'false')});
   Object.entries(wrappers).forEach(([id,wrapper])=>wrapper.hidden=id!==selected);history.replaceState(null,'','#'+(selected==='tailoring'?'tailoringCard':selected==='orders'?'ordersList':selected));
  });
+ pagesHost.addEventListener('click',event=>{
+  const link=event.target.closest('a[href^="#"]');if(!link)return;
+  const target=link.getAttribute('href').slice(1);
+  const pageId=['tailoringList','archivedTailoringList','tailoringCard'].includes(target)?'tailoring':['ordersList','archivedOrdersList'].includes(target)?'orders':null;
+  if(!pageId)return;event.preventDefault();nav.querySelector('button[data-customer-page="'+pageId+'"]')?.click();
+ });
 }
 function updateCustomerOverview(orders=[],tailoring=[]){
  const activeOrders=orders.filter(o=>!o.archived_at&&!['delivered','cancelled'].includes(o.status)).length;
