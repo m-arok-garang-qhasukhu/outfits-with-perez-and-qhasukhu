@@ -343,6 +343,7 @@ async function init(){
 $('loginForm').onsubmit=async e=>{e.preventDefault();if(!cloud()){ $('loginMsg').textContent='Cloud connection unavailable. Please contact the site administrator.'; return; } const {error}=await window.OPQ_SUPABASE.auth.signInWithPassword({email:$('loginEmail').value.trim(),password:$('loginPassword').value});$('loginMsg').textContent=error?error.message:'Signed in. Checking admin access…'};
 $('logoutBtn').onclick=()=>window.OPQ_SUPABASE.auth.signOut();$('refreshDashboard')?.addEventListener('click',refreshDashboardOverview);$('adminSearch')?.addEventListener('input',e=>{const q=e.target.value.trim().toLowerCase();document.querySelectorAll('.admin-dashboard-page:not(.admin-page-hidden) .admin-table tbody tr').forEach(row=>{row.hidden=!!q&&!row.textContent.toLowerCase().includes(q)})});setupAdminPageNavigation();
 $('productQuickSearch')?.addEventListener('input',()=>{productAdminPage=1;render()});
+document.querySelectorAll('.dashboard-search-button[data-search-target]').forEach(button=>button.addEventListener('click',()=>{const input=$(button.dataset.searchTarget);if(!input)return;input.dispatchEvent(new Event('input',{bubbles:true}));input.focus();}));
 function setupAdminPageNavigation(){
  const nav=document.querySelector('.admin-nav');if(!nav||nav.dataset.pageNavigationReady)return;nav.dataset.pageNavigationReady='1';
  const pages=[
