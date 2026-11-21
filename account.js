@@ -52,6 +52,38 @@ function ensureCustomerDashboardTools(){
  const style=document.createElement('style');style.id='customer-dashboard-tools-style';style.textContent='.customer-overview{background:#f4f9ff;border:1px solid #b8d0e8;border-radius:13px;padding:18px;margin:16px 0 22px}.customer-overview-heading{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.customer-overview-heading strong{display:block;color:#193f65;font-size:16px}.customer-overview-heading small,.overview-updated{display:block;color:#536b84;font-size:11px;margin-top:4px}.customer-stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:15px 0}.customer-stat{background:#fff;border:1px solid #c7d9eb;border-radius:9px;padding:12px}.customer-stat small{display:block;color:#536b84;font-size:11px}.customer-stat strong{display:block;color:#781f3a;font-size:25px;margin-top:4px}.customer-quick-links{display:flex;gap:8px;flex-wrap:wrap}.customer-quick-links a{color:#24527e;background:#e7f1fb;border:1px solid #c3d8ec;border-radius:20px;padding:7px 11px;text-decoration:none;font-size:11px;font-weight:700}.customer-progress{margin:13px 0 16px;padding:12px;background:#f5f9fe;border-radius:9px;border:1px solid #d7e5f2}.customer-progress-label{font-size:11px;color:#536b84;font-weight:700;margin-bottom:9px}.customer-progress-track{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}.customer-progress-step{height:6px;border-radius:9px;background:#d9e4ef}.customer-progress-step.done{background:#24527e}.customer-progress-step.current{background:#781f3a}.customer-progress-caption{font-size:10px;color:#536b84;margin-top:7px}.customer-progress.cancelled .customer-progress-caption{color:#a3263d;font-weight:700}@media(max-width:650px){.customer-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.customer-overview{padding:13px}.customer-progress{padding:10px}}';
  document.head.appendChild(style);
 }
+function ensureCustomerDashboardNavigation(){
+ if($('customerDashboardNav'))return;
+ const host=$('ordersCard');if(!host)return;
+ const style=document.createElement('style');style.id='customer-dashboard-pages-style';
+ style.textContent='.customer-dashboard-nav{display:flex;gap:8px;overflow-x:auto;padding:12px 0 16px;margin:8px 0 18px;border-bottom:1px solid #b8d0e8;scrollbar-width:thin}.customer-dashboard-nav button{flex:0 0 auto;border:1px solid #b8d0e8;border-radius:8px;padding:10px 15px;background:transparent;color:#193f65;font-size:12px;font-weight:700;cursor:pointer}.customer-dashboard-nav button.active{background:#193f65;color:#fff;border-color:#193f65}.customer-dashboard-page{min-width:0}.customer-dashboard-page[hidden]{display:none!important}.customer-dashboard-page>.account-card{margin-top:0}@media(max-width:650px){.customer-dashboard-nav{margin-left:-2px;margin-right:-2px}.customer-dashboard-nav button{padding:9px 12px}}';
+ document.head.appendChild(style);
+ const nav=document.createElement('nav');nav.id='customerDashboardNav';nav.className='customer-dashboard-nav';nav.setAttribute('aria-label','Your account pages');
+ const pages=[
+  {id:'overview',label:'Overview',nodes:['customerOverview','ordersMessage']},
+  {id:'notifications',label:'Notifications',nodes:['customerNotifications']},
+  {id:'orders',label:'My orders',nodes:['customerOrderTools','ordersList','customerOrderFilterEmpty']},
+  {id:'tailoring',label:'Tailoring',nodes:['tailoringCard']},
+  {id:'reviews',label:'My reviews',nodes:['customerReviewsPanel']}
+ ];
+ const wrappers={};
+ pages.forEach((page,index)=>{
+  const button=document.createElement('button');button.type='button';button.textContent=page.label;button.dataset.customerPage=page.id;button.classList.toggle('active',index===0);button.setAttribute('aria-current',index===0?'page':'false');nav.append(button);
+  const wrapper=document.createElement('section');wrapper.className='customer-dashboard-page';wrapper.dataset.customerPageContent=page.id;wrapper.hidden=index!==0;wrappers[page.id]=wrapper;
+ });
+ const header=host.querySelector('.order-top');header?.after(nav);
+ const pagesHost=document.createElement('div');pagesHost.id='customerDashboardPages';nav.after(pagesHost);
+ Object.values(wrappers).forEach(w=>pagesHost.append(w));
+ const find=id=>$(id)||null;
+ pages.forEach(page=>page.nodes.forEach(id=>{const node=find(id);if(node)wrappers[page.id].append(node)}));
+ const archived=host.querySelector(':scope > .archive-block');if(archived)wrappers.orders.append(archived);
+ nav.addEventListener('click',event=>{
+  const button=event.target.closest('button[data-customer-page]');if(!button)return;
+  const selected=button.dataset.customerPage;
+  nav.querySelectorAll('button').forEach(b=>{const active=b===button;b.classList.toggle('active',active);b.setAttribute('aria-current',active?'page':'false')});
+  Object.entries(wrappers).forEach(([id,wrapper])=>wrapper.hidden=id!==selected);
+ });
+}
 function updateCustomerOverview(orders=[],tailoring=[]){
  const activeOrders=orders.filter(o=>!o.archived_at&&!['delivered','cancelled'].includes(o.status)).length;
  const completedOrders=orders.filter(o=>o.status==='delivered').length;
@@ -142,7 +174,7 @@ async function loadAccount(){
  if(passwordRecoveryMode){showPasswordReset();return}
  if(!session){$('authCard').classList.remove('hidden');$('ordersCard').classList.add('hidden');return}
  const savedName=session.user.user_metadata?.full_name||session.user.user_metadata?.name||'';if($('tailorCustomerName')&&!$('tailorCustomerName').value)$('tailorCustomerName').value=savedName;
- $('authCard').classList.add('hidden');$('ordersCard').classList.remove('hidden');ensureCustomerDashboardTools();$('ordersMessage').textContent='Loading your orders…';
+ $('authCard').classList.add('hidden');$('ordersCard').classList.remove('hidden');ensureCustomerDashboardTools();ensureCustomerDashboardNavigation();$('ordersMessage').textContent='Loading your orders…';
  const {data:orders,error}=await db.from('orders').select('id,customer_name,status,payment_status,total_kes,created_at,archived_at,cancellation_status,cancellation_admin_note,order_items(id,product_id,product_name,quantity,size,unit_price_kes)').order('created_at',{ascending:false}).limit(150);
  if(error){$('ordersMessage').textContent='Could not load your orders: '+error.message;return}
  window.customerOrdersCache=orders;await loadCustomerNotifications(db);await refreshCustomerReviewStatuses();const active=orders.filter(o=>!o.archived_at),archived=orders.filter(o=>o.archived_at);updateCustomerOverview(orders,window.customerTailoringCache||[]);
