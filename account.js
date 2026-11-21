@@ -115,7 +115,7 @@ function ensureCustomerDashboardNavigation(){
   archiveSearchWrap.innerHTML='<label for="customerArchivedTailoringSearch">Search archived tailoring requests<span class="dashboard-search-control"><input id="customerArchivedTailoringSearch" type="search" placeholder="Reference, garment, fabric or status"><button type="button" class="dashboard-search-button" id="customerArchivedTailoringSearchButton" aria-label="Search archived tailoring requests" title="Search">🔍</button></span></label>';
   archivedPanel.insertBefore(archiveSearchWrap,archivedPanel.querySelector('h3')?.nextSibling||archivedPanel.firstChild);
   const search=$('customerTailoringSearch'),archiveSearch=$('customerArchivedTailoringSearch');
-  const filterList=(list,q)=>{if(!list)return;[...list.querySelectorAll('.account-order')].forEach(card=>card.classList.toggle('hidden',!!q&&!card.textContent.toLowerCase().includes(q)));};
+  const filterList=(list,q)=>{if(!list)return;[...list.querySelectorAll('.account-order')].forEach(card=>{const searchable=((card.dataset.tailoringSearch||'')+' '+card.textContent).toLowerCase();card.classList.toggle('hidden',!!q&&!searchable.includes(q));});};
   const runActiveSearch=()=>filterList(activeList,(search?.value||'').trim().toLowerCase());
   const runArchiveSearch=()=>filterList(archivedList,(archiveSearch?.value||'').trim().toLowerCase());
   search?.addEventListener('input',runActiveSearch);archiveSearch?.addEventListener('input',runArchiveSearch);
