@@ -79,7 +79,9 @@ async function renderOrders(){
  if(error){$('ordersMessage').textContent='Could not load orders: '+error.message;return}
  const active=orders.filter(o=>!o.archived_at),archived=orders.filter(o=>o.archived_at);
  const statusFilter=$('orderStatusFilter')?.value||'all',paymentFilter=$('orderPaymentFilter')?.value||'all',term=($('orderQuickSearch')?.value||'').trim().toLowerCase();
- const visible=active.filter(o=>(statusFilter==='all'||o.status===statusFilter)&&(paymentFilter==='all'||o.payment_status===paymentFilter)&&(!term||[o.id,o.customer_name,o.phone,o.delivery_address].some(v=>String(v||'').toLowerCase().includes(term))));
+ const visible=active.filter(o=>(statusFilter==='all'||o.status===statusFilter)&&(paymentFilter==='all'||o.payment_status===paymentFilter)&&(!term||[o.id,o.customer_name,o.phone,o.delivery_address,...(o.order_items||[]).map(i=>i.product_name)].some(v=>String(v||'').toLowerCase().includes(term))));
+ const archivedTerm=($('archivedOrderQuickSearch')?.value||'').trim().toLowerCase();
+ const archivedVisible=archived.filter(o=>!archivedTerm||[o.id,o.customer_name,o.phone,o.delivery_address,o.status,o.payment_status,...(o.order_items||[]).map(i=>i.product_name)].some(v=>String(v||'').toLowerCase().includes(archivedTerm)));
  $('orderCount').textContent='('+visible.length+' shown / '+active.length+' active)';
  $('activeOrderTabCount').textContent='('+active.length+')';$('archivedOrderTabCount').textContent='('+archived.length+')';
  tbody.innerHTML=visible.map(o=>{
@@ -88,8 +90,8 @@ async function renderOrders(){
   return `<tr><td><b>${esc(String(o.id).slice(0,8).toUpperCase())}</b><br><small>${new Date(o.created_at).toLocaleString()}</small></td><td><b>${esc(o.customer_name)}</b><br><small>${esc(o.phone)}</small><br><small>${esc(o.delivery_address||'')}</small>${o.notes?`<br><small>Note: ${esc(o.notes)}</small>`:''}</td><td>${items}</td><td>${money(o.total_kes)}</td><td><select aria-label="Payment status" id="pay-${esc(o.id)}">${['unpaid','pending','paid','failed','refunded'].map(v=>`<option value="${v}" ${o.payment_status===v?'selected':''}>${titleCase(v)}</option>`).join('')}</select></td><td><select aria-label="Order status" id="status-${esc(o.id)}">${orderStatusOptions.map(v=>`<option value="${v}" ${o.status===v?'selected':''}>${titleCase(v)}</option>`).join('')}</select></td><td><button type="button" onclick="updateOrder('${esc(o.id)}')">Save</button>${canArchive?`<br><button type="button" class="archive-action" onclick="archiveOrderAdmin('${esc(o.id)}')">Archive</button>`:''}</td></tr>`;
  }).join('')||'<tr><td colspan="7">No active customer orders.</td></tr>';
  const archivedRows=$('archivedOrderRows');
- if(archivedRows) archivedRows.innerHTML=archived.map(o=>`<tr><td><b>${esc(String(o.id).slice(0,8).toUpperCase())}</b><br><small>${new Date(o.created_at).toLocaleDateString()}</small></td><td>${esc(o.customer_name)}<br><small>${esc(o.phone)}</small></td><td>${titleCase(o.status)}</td><td>${new Date(o.archived_at).toLocaleString()}</td><td><button type="button" onclick="restoreOrderAdmin('${esc(o.id)}')">Restore</button></td></tr>`).join('')||'<tr><td colspan="5">No archived orders.</td></tr>';
- $('ordersMessage').textContent=visible.length+' order(s) match your filters; '+active.length+' active and '+archived.length+' archived. Only Delivered or Cancelled orders can be archived.';
+ if(archivedRows) archivedRows.innerHTML=archivedVisible.map(o=>`<tr><td><b>${esc(String(o.id).slice(0,8).toUpperCase())}</b><br><small>${new Date(o.created_at).toLocaleDateString()}</small></td><td>${esc(o.customer_name)}<br><small>${esc(o.phone)}</small></td><td>${titleCase(o.status)}</td><td>${new Date(o.archived_at).toLocaleString()}</td><td><button type="button" onclick="restoreOrderAdmin('${esc(o.id)}')">Restore</button></td></tr>`).join('')||'<tr><td colspan="5">'+(archived.length?'No archived orders match your search.':'No archived orders.')+'</td></tr>';
+ $('ordersMessage').textContent=visible.length+' active order(s) match your filters; '+archivedVisible.length+' of '+archived.length+' archived orders match the archive search. Only Delivered or Cancelled orders can be archived.';
 }
 window.archiveOrderAdmin=async id=>{try{const {error}=await window.OPQ_SUPABASE.from('orders').update({archived_at:new Date().toISOString()}).eq('id',id).in('status',['delivered','cancelled']).is('archived_at',null);if(error)throw error;await renderOrders();}catch(e){$('ordersMessage').textContent='Could not archive order: '+e.message}};
 window.restoreOrderAdmin=async id=>{try{const {error}=await window.OPQ_SUPABASE.from('orders').update({archived_at:null}).eq('id',id);if(error)throw error;await renderOrders();}catch(e){$('ordersMessage').textContent='Could not restore order: '+e.message}};
@@ -195,9 +197,11 @@ async function renderTailoring(){
  }));
  $('tailoringRows').innerHTML=html.join('');
  renderTailoringAdminPagination(totalPages,visible.length,pageStart,pageRows.length);
+ const archivedTerm=($('archivedTailoringQuickSearch')?.value||'').trim().toLowerCase();
+ const archivedVisible=archived.filter(r=>!archivedTerm||[r.reference_code,r.customer_name,r.customer_email,r.customer_phone,r.garment_type,r.fabric,r.colour,r.status,r.deposit_status,r.desired_completion_date].some(v=>String(v||'').toLowerCase().includes(archivedTerm)));
  const archivedRows=$('archivedTailoringRows');
- if(archivedRows) archivedRows.innerHTML=archived.map(r=>'<tr><td><b>'+esc(r.reference_code)+'</b></td><td>'+esc(r.customer_name||'')+'</td><td>'+esc(r.garment_type)+'</td><td>'+new Date(r.archived_at).toLocaleString()+'</td><td><button onclick="restoreTailoringRequest(\''+r.id+'\')">Restore to active</button></td></tr>').join('')||'<tr><td colspan="5">No archived requests.</td></tr>';
- $('tailoringAdminMessage').textContent=active.length+' active request(s); '+archived.length+' archived. All records are loaded in batches; use search and pages to find older requests. Archive completed or delivered requests only.';
+ if(archivedRows) archivedRows.innerHTML=archivedVisible.map(r=>'<tr><td><b>'+esc(r.reference_code)+'</b></td><td>'+esc(r.customer_name||'')+'</td><td>'+esc(r.garment_type)+'</td><td>'+new Date(r.archived_at).toLocaleString()+'</td><td><button onclick="restoreTailoringRequest(\''+r.id+'\')">Restore to active</button></td></tr>').join('')||'<tr><td colspan="5">'+(archived.length?'No archived requests match your search.':'No archived requests.')+'</td></tr>';
+ $('tailoringAdminMessage').textContent=active.length+' active request(s); '+archivedVisible.length+' of '+archived.length+' archived requests match the archive search. All records are loaded in batches. Archive completed or delivered requests only.';
 }
 function renderTailoringAdminPagination(totalPages,total,start,shown){
  const host=$('tailoringAdminPagination'),summary=$('tailoringPageSummary');if(!host)return;
@@ -346,6 +350,8 @@ $('loginForm').onsubmit=async e=>{e.preventDefault();if(!cloud()){ $('loginMsg')
 $('logoutBtn').onclick=()=>window.OPQ_SUPABASE.auth.signOut();$('refreshDashboard')?.addEventListener('click',refreshDashboardOverview);$('adminSearch')?.addEventListener('input',e=>{const q=e.target.value.trim().toLowerCase();document.querySelectorAll('.admin-dashboard-page:not(.admin-page-hidden) .admin-table tbody tr').forEach(row=>{const subpage=row.closest('.admin-subpage');if(subpage&&subpage.hidden)return;row.hidden=!!q&&!row.textContent.toLowerCase().includes(q)})});setupAdminPageNavigation();
 setupAdminSubpageNavigation();
 $('productQuickSearch')?.addEventListener('input',()=>{productAdminPage=1;render()});
+$('orderQuickSearch')?.addEventListener('input',renderOrders);$('archivedOrderQuickSearch')?.addEventListener('input',renderOrders);
+$('tailoringQuickSearch')?.addEventListener('input',()=>{tailoringAdminPage=1;renderTailoring()});$('archivedTailoringQuickSearch')?.addEventListener('input',renderTailoring);
 document.querySelectorAll('.dashboard-search-button[data-search-target]').forEach(button=>button.addEventListener('click',()=>{const input=$(button.dataset.searchTarget);if(!input)return;input.dispatchEvent(new Event('input',{bubbles:true}));input.focus();}));
 
 function setupAdminSubpageNavigation(){
