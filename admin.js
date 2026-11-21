@@ -341,8 +341,35 @@ async function init(){
   } else await render();
 }
 $('loginForm').onsubmit=async e=>{e.preventDefault();if(!cloud()){ $('loginMsg').textContent='Cloud connection unavailable. Please contact the site administrator.'; return; } const {error}=await window.OPQ_SUPABASE.auth.signInWithPassword({email:$('loginEmail').value.trim(),password:$('loginPassword').value});$('loginMsg').textContent=error?error.message:'Signed in. Checking admin access…'};
-$('logoutBtn').onclick=()=>window.OPQ_SUPABASE.auth.signOut();$('refreshDashboard')?.addEventListener('click',refreshDashboardOverview);$('adminSearch')?.addEventListener('input',e=>{const q=e.target.value.trim().toLowerCase();document.querySelectorAll('.admin-table tbody tr').forEach(row=>{row.hidden=!!q&&!row.textContent.toLowerCase().includes(q)})});document.querySelectorAll('.admin-nav a').forEach(a=>a.addEventListener('click',()=>{document.querySelectorAll('.admin-nav a').forEach(x=>x.classList.remove('active'));a.classList.add('active')}));
+$('logoutBtn').onclick=()=>window.OPQ_SUPABASE.auth.signOut();$('refreshDashboard')?.addEventListener('click',refreshDashboardOverview);$('adminSearch')?.addEventListener('input',e=>{const q=e.target.value.trim().toLowerCase();document.querySelectorAll('.admin-table tbody tr').forEach(row=>{row.hidden=!!q&&!row.textContent.toLowerCase().includes(q)})});setupAdminPageNavigation();
 $('productQuickSearch')?.addEventListener('input',()=>{productAdminPage=1;render()});
+function setupAdminPageNavigation(){
+ const nav=document.querySelector('.admin-nav');if(!nav||nav.dataset.pageNavigationReady)return;nav.dataset.pageNavigationReady='1';
+ const pages=[
+  {id:'overview',label:'Overview',sections:['overview']},
+  {id:'reportsPanel',label:'Reports',sections:['reportsPanel']},
+  {id:'productsPanel',label:'Products',sections:['productFormPanel','productsPanel']},
+  {id:'ordersPanel',label:'Orders',sections:['ordersPanel']},
+  {id:'tailoringPanel',label:'Tailoring',sections:['tailoringPanel']},
+  {id:'cancellationsPanel',label:'Cancellations',sections:['cancellationsPanel']},
+  {id:'reviewsPanel',label:'Reviews',sections:['reviewsPanel']}
+ ];
+ const style=document.createElement('style');style.id='admin-dashboard-pages-style';style.textContent='.admin-page-hidden{display:none!important}.admin-nav a{cursor:pointer}.admin-nav a:focus-visible{outline:2px solid #e0ad00;outline-offset:3px}';document.head.appendChild(style);
+ const elements={};
+ pages.forEach(page=>page.sections.forEach(id=>{const el=$(id);if(el){el.classList.add('admin-dashboard-page');el.dataset.adminPage=page.id;elements[id]=el}}));
+ const toolbar=$('adminToolbar')||document.querySelector('.admin-toolbar');if(toolbar)toolbar.dataset.adminToolbar='1';
+ function showPage(id){
+  pages.forEach(page=>page.sections.forEach(sectionId=>{const el=elements[sectionId];if(el)el.classList.toggle('admin-page-hidden',page.id!==id)}));
+  if(toolbar)toolbar.classList.toggle('admin-page-hidden',!['productsPanel','ordersPanel','tailoringPanel','reviewsPanel'].includes(id));
+  nav.querySelectorAll('a').forEach(link=>{const target=link.getAttribute('href')?.slice(1);const active=target===id;link.classList.toggle('active',active);if(active)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current')});
+  nav.dataset.activePage=id;
+ }
+ nav.querySelectorAll('a').forEach(link=>link.addEventListener('click',event=>{
+  const target=link.getAttribute('href')?.slice(1);const page=pages.find(item=>item.id===target||item.sections.includes(target));
+  if(!page)return;event.preventDefault();showPage(page.id);history.replaceState(null,'','#'+page.id);
+ }));
+ showPage('overview');
+}
 init();
 
 // Section-level filters keep the global dashboard search available as well.
