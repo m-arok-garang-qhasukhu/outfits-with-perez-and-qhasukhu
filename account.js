@@ -70,7 +70,7 @@ function ensureCustomerDashboardNavigation(){
  const header=host.querySelector('.order-top');header?.after(nav);
  const pagesHost=document.createElement('div');pagesHost.id='customerDashboardPages';nav.after(pagesHost);
  Object.values(wrappers).forEach(w=>pagesHost.append(w));
- const move=(selector,target)=>{const node=host.querySelector(selector);if(node&&target)target.append(node);return node;};
+ const move=(selector,target)=>{const node=selector.startsWith('#')?$(selector.slice(1)):host.querySelector(selector);if(node&&target)target.append(node);return node;};
  move('#customerOverview',wrappers.overview);move('#ordersMessage',wrappers.overview);
  move('#customerNotifications',wrappers.notifications);
  const orderTools=move('.customer-order-tools',wrappers.orders);
