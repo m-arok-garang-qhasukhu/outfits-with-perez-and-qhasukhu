@@ -73,6 +73,26 @@ button:disabled{opacity:.6;cursor:not-allowed}
 #forgotPasswordButton{font-size:12px}.password-guidance{grid-column:1/-1;margin:10px 0 4px;padding:12px 14px;background:#f2f7fc;border:1px solid #c7d9eb;border-radius:9px;color:#294967;font-size:12px}.password-guidance strong{display:block;margin-bottom:7px;color:#193f65}.password-guidance ul{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 18px;margin:0;padding-left:18px}.password-guidance li{color:#8a4b24}.password-guidance li.met{color:#187347;font-weight:700}.password-guidance li.met::marker{content:"✓  "}@media(max-width:600px){.password-guidance ul{grid-template-columns:1fr}}#resetPasswordForm{margin-top:12px;padding-top:15px;border-top:1px solid #e7e0d5}#resetPasswordForm h3{color:#193f65;margin:0 0 8px}
 /* Printable customer tailoring quotations */
 .tailoring-quote-print{display:inline-flex;margin-top:12px;align-items:center;justify-content:center;padding:10px 14px;border:1px solid #781f3a;border-radius:8px;background:#781f3a;color:#fff;font:700 12px Arial,sans-serif;cursor:pointer}.tailoring-quote-print:hover{background:#571329}
+
+/* P&Q dashboard clarity: section boundaries only; existing backgrounds remain unchanged */
+.account-wrap>.account-card{border:1px solid #739fcf;box-shadow:0 5px 18px rgba(28,68,112,.08)}
+.account-wrap #ordersCard>.customer-notifications,
+.account-wrap #ordersCard>.customer-order-tools,
+.account-wrap #ordersCard>.archive-block,
+.account-wrap #tailoringCard>.archive-block{border:1px solid #b8cde2;border-radius:10px;padding:16px;margin:18px 0}
+.account-wrap #ordersList>.account-order,
+.account-wrap #ordersList>.customer-order,
+.account-wrap #archivedOrdersList>.account-order{border:1px solid #c7d9eb;border-radius:9px;margin:12px 0;padding:15px}
+.account-wrap #ordersList table,
+.account-wrap #archivedOrdersList table,
+.account-wrap #tailoringList table,
+.account-wrap #archivedTailoringList table{border-collapse:collapse;width:100%}
+.account-wrap #ordersList th,.account-wrap #ordersList td,
+.account-wrap #archivedOrdersList th,.account-wrap #archivedOrdersList td,
+.account-wrap #tailoringList th,.account-wrap #tailoringList td,
+.account-wrap #archivedTailoringList th,.account-wrap #archivedTailoringList td{border-bottom:1px solid #c7d9eb;padding:10px 8px;vertical-align:top}
+#customerOrderSearch{padding-left:36px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23193858' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-4-4'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:11px center;background-size:17px}
+@media(max-width:650px){.account-wrap #ordersCard>.customer-notifications,.account-wrap #ordersCard>.customer-order-tools,.account-wrap #ordersCard>.archive-block{padding:12px}}
 </style></head><body>
 <div class="announcement">YOUR ACCOUNT • PRIVATE ORDER TRACKING</div>
 <header class="site-header"><a class="brand" href="index.html"><img class="brand-logo" src="logo.svg" alt="P/Q logo"><span><strong>OUTFITS</strong><small>with Perez & Qhasukhu</small></span></a><nav><a href="index.html">Back to store</a></nav></header>
