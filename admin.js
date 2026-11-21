@@ -75,8 +75,8 @@ async function renderOrders(){
  if(!cloud())return;
  const tbody=$('orderRows'); if(!tbody)return;
  $('ordersMessage').textContent='Loading orders…';
- const {data:orders,error}=await window.OPQ_SUPABASE.from('orders').select('id,customer_name,phone,delivery_address,notes,status,payment_status,total_kes,created_at,archived_at,cancellation_status,cancellation_reason,cancellation_admin_note,order_items(product_name,quantity,size,unit_price_kes)').order('created_at',{ascending:false}).limit(150);
- if(error){$('ordersMessage').textContent='Could not load orders: '+error.message;return}
+ const orders=[];const batchSize=500;
+ for(let from=0;;from+=batchSize){const {data:batch,error}=await window.OPQ_SUPABASE.from('orders').select('id,customer_name,phone,delivery_address,notes,status,payment_status,total_kes,created_at,archived_at,cancellation_status,cancellation_reason,cancellation_admin_note,order_items(product_name,quantity,size,unit_price_kes)').order('created_at',{ascending:false}).range(from,from+batchSize-1);if(error){$('ordersMessage').textContent='Could not load orders: '+error.message;return;}orders.push(...(batch||[]));if(!batch||batch.length<batchSize)break;}
  const active=orders.filter(o=>!o.archived_at),archived=orders.filter(o=>o.archived_at);
  const statusFilter=$('orderStatusFilter')?.value||'all',paymentFilter=$('orderPaymentFilter')?.value||'all',term=($('orderQuickSearch')?.value||'').trim().toLowerCase();
  const visible=active.filter(o=>(statusFilter==='all'||o.status===statusFilter)&&(paymentFilter==='all'||o.payment_status===paymentFilter)&&(!term||[o.id,o.customer_name,o.phone,o.delivery_address,...(o.order_items||[]).map(i=>i.product_name)].some(v=>String(v||'').toLowerCase().includes(term))));
