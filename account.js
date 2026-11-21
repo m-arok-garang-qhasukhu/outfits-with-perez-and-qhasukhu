@@ -200,6 +200,7 @@ function applyCustomerOrderFilters(){
  const empty=$('customerOrderFilterEmpty');if(empty)empty.classList.toggle('hidden',shown!==0||cards.length===0);const count=$('customerOrderFilterCount');if(count)count.textContent='Showing '+shown+' of '+cards.length+' active order(s).';
 }
 $('customerOrderSearch')?.addEventListener('input',applyCustomerOrderFilters);
+document.querySelectorAll('.dashboard-search-button[data-search-target="customerOrderSearch"]').forEach(button=>button.addEventListener('click',()=>{const input=$('customerOrderSearch');if(!input)return;applyCustomerOrderFilters();input.focus();}));
 $('customerOrderStatus')?.addEventListener('change',applyCustomerOrderFilters);
 $('refreshCustomerAccount').onclick=async()=>{const button=$('refreshCustomerAccount');if(!button||button.disabled)return;button.disabled=true;button.textContent='Refreshing…';try{await loadAccount();$('ordersMessage').textContent+=' Last refreshed '+new Date().toLocaleTimeString()+'.';}catch(e){$('ordersMessage').textContent='Could not refresh your account: '+e.message;}finally{button.disabled=false;button.textContent='↻ Refresh status';}};
 $('signOut').onclick=async()=>{const db=supa();if(db)await db.auth.signOut();$('ordersCard').classList.add('hidden');$('authCard').classList.remove('hidden');$('authMessage').textContent='You have signed out.'};
