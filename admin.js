@@ -71,12 +71,32 @@ function renderProductAdminPagination(totalPages,total,start,shown){
 
 const orderStatusOptions=['pending','confirmed','awaiting_payment','in_progress','processing','ready','out_for_delivery','delivered','cancelled','paid'];
 const titleCase=s=>String(s||'').replaceAll('_',' ').replace(/\b\w/g,c=>c.toUpperCase());
+const adminAvatarUrlCache=new Map();
+async function adminCustomerAvatar(userId,name){
+ const initials=String(name||'Customer').trim().split(/\s+/).slice(0,2).map(part=>part[0]||'').join('').toUpperCase()||'C';
+ if(!userId)return '<span class="admin-customer-avatar admin-customer-avatar-fallback" aria-label="No linked customer profile">'+esc(initials)+'</span>';
+ if(!adminAvatarUrlCache.has(userId)){
+  adminAvatarUrlCache.set(userId,(async()=>{
+   const {data,error}=await window.OPQ_SUPABASE.storage.from('customer-avatars').createSignedUrl(userId+'/avatar',3600);
+   if(error){console.info('No customer profile photo available for this account.');return '';}
+   return data?.signedUrl||'';
+  })());
+ }
+ const url=await adminAvatarUrlCache.get(userId);
+ return url?'<img class="admin-customer-avatar" src="'+esc(url)+'" alt="'+esc(name||'Customer')+' profile photo" loading="lazy">':'<span class="admin-customer-avatar admin-customer-avatar-fallback" aria-label="No profile photo">'+esc(initials)+'</span>';
+}
+function ensureAdminAvatarStyles(){
+ if(document.getElementById('admin-customer-avatar-styles'))return;
+ const style=document.createElement('style');style.id='admin-customer-avatar-styles';
+ style.textContent='.admin-customer-cell{display:flex;align-items:center;gap:10px;min-width:190px}.admin-customer-avatar{width:42px;height:42px;flex:0 0 42px;object-fit:cover;border-radius:50%;border:1px solid #d9dee6;background:#f3f5f8}.admin-customer-avatar-fallback{display:inline-flex;align-items:center;justify-content:center;color:#17283f;font-weight:700;font-size:13px;background:#f5e8ae}';
+ document.head.appendChild(style);
+}
 async function renderOrders(){
  if(!cloud())return;
  const tbody=$('orderRows'); if(!tbody)return;
  $('ordersMessage').textContent='Loading orders…';
  const orders=[];const batchSize=500;
- for(let from=0;;from+=batchSize){const {data:batch,error}=await window.OPQ_SUPABASE.from('orders').select('id,customer_name,phone,delivery_address,notes,status,payment_status,total_kes,created_at,archived_at,cancellation_status,cancellation_reason,cancellation_admin_note,order_items(product_name,quantity,size,unit_price_kes)').order('created_at',{ascending:false}).range(from,from+batchSize-1);if(error){$('ordersMessage').textContent='Could not load orders: '+error.message;return;}orders.push(...(batch||[]));if(!batch||batch.length<batchSize)break;}
+ for(let from=0;;from+=batchSize){const {data:batch,error}=await window.OPQ_SUPABASE.from('orders').select('id,user_id,customer_name,phone,delivery_address,notes,status,payment_status,total_kes,created_at,archived_at,cancellation_status,cancellation_reason,cancellation_admin_note,order_items(product_name,quantity,size,unit_price_kes)').order('created_at',{ascending:false}).range(from,from+batchSize-1);if(error){$('ordersMessage').textContent='Could not load orders: '+error.message;return;}orders.push(...(batch||[]));if(!batch||batch.length<batchSize)break;}
  const active=orders.filter(o=>!o.archived_at),archived=orders.filter(o=>o.archived_at);
  const statusFilter=$('orderStatusFilter')?.value||'all',paymentFilter=$('orderPaymentFilter')?.value||'all',term=($('orderQuickSearch')?.value||'').trim().toLowerCase();
  const visible=active.filter(o=>(statusFilter==='all'||o.status===statusFilter)&&(paymentFilter==='all'||o.payment_status===paymentFilter)&&(!term||[o.id,o.customer_name,o.phone,o.delivery_address,...(o.order_items||[]).map(i=>i.product_name)].some(v=>String(v||'').toLowerCase().includes(term))));
@@ -84,13 +104,18 @@ async function renderOrders(){
  const archivedVisible=archived.filter(o=>!archivedTerm||[o.id,o.customer_name,o.phone,o.delivery_address,o.status,o.payment_status,...(o.order_items||[]).map(i=>i.product_name)].some(v=>String(v||'').toLowerCase().includes(archivedTerm)));
  $('orderCount').textContent='('+visible.length+' shown / '+active.length+' active)';
  $('activeOrderTabCount').textContent='('+active.length+')';$('archivedOrderTabCount').textContent='('+archived.length+')';
- tbody.innerHTML=visible.map(o=>{
+ ensureAdminAvatarStyles();
+ tbody.innerHTML=(await Promise.all(visible.map(async o=>{
+  const avatar=await adminCustomerAvatar(o.user_id,o.customer_name);
   const items=(o.order_items||[]).map(i=>`${esc(i.product_name)}${i.size?' · '+esc(i.size):''} × ${i.quantity}`).join('<br>')||'—';
   const canArchive=['delivered','cancelled'].includes(o.status);
-  return `<tr><td><b>${esc(String(o.id).slice(0,8).toUpperCase())}</b><br><small>${new Date(o.created_at).toLocaleString()}</small></td><td><b>${esc(o.customer_name)}</b><br><small>${esc(o.phone)}</small><br><small>${esc(o.delivery_address||'')}</small>${o.notes?`<br><small>Note: ${esc(o.notes)}</small>`:''}</td><td>${items}</td><td>${money(o.total_kes)}</td><td><select aria-label="Payment status" id="pay-${esc(o.id)}">${['unpaid','pending','paid','failed','refunded'].map(v=>`<option value="${v}" ${o.payment_status===v?'selected':''}>${titleCase(v)}</option>`).join('')}</select></td><td><select aria-label="Order status" id="status-${esc(o.id)}">${orderStatusOptions.map(v=>`<option value="${v}" ${o.status===v?'selected':''}>${titleCase(v)}</option>`).join('')}</select></td><td><button type="button" onclick="updateOrder('${esc(o.id)}')">Save</button>${canArchive?`<br><button type="button" class="archive-action" onclick="archiveOrderAdmin('${esc(o.id)}')">Archive</button>`:''}</td></tr>`;
- }).join('')||'<tr><td colspan="7">No active customer orders.</td></tr>';
+  return `<tr><td><b>${esc(String(o.id).slice(0,8).toUpperCase())}</b><br><small>${new Date(o.created_at).toLocaleString()}</small></td><td><div class="admin-customer-cell">${avatar}<div><b>${esc(o.customer_name)}</b><br><small>${esc(o.phone)}</small><br><small>${esc(o.delivery_address||'')}</small>${o.notes?`<br><small>Note: ${esc(o.notes)}</small>`:''}</div></div></td><td>${items}</td><td>${money(o.total_kes)}</td><td><select aria-label="Payment status" id="pay-${esc(o.id)}">${['unpaid','pending','paid','failed','refunded'].map(v=>`<option value="${v}" ${o.payment_status===v?'selected':''}>${titleCase(v)}</option>`).join('')}</select></td><td><select aria-label="Order status" id="status-${esc(o.id)}">${orderStatusOptions.map(v=>`<option value="${v}" ${o.status===v?'selected':''}>${titleCase(v)}</option>`).join('')}</select></td><td><button type="button" onclick="updateOrder('${esc(o.id)}')">Save</button>${canArchive?`<br><button type="button" class="archive-action" onclick="archiveOrderAdmin('${esc(o.id)}')">Archive</button>`:''}</td></tr>`;
+ }))).join('')||'<tr><td colspan="7">No active customer orders.</td></tr>';
  const archivedRows=$('archivedOrderRows');
- if(archivedRows) archivedRows.innerHTML=archivedVisible.map(o=>`<tr><td><b>${esc(String(o.id).slice(0,8).toUpperCase())}</b><br><small>${new Date(o.created_at).toLocaleDateString()}</small></td><td>${esc(o.customer_name)}<br><small>${esc(o.phone)}</small></td><td>${titleCase(o.status)}</td><td>${new Date(o.archived_at).toLocaleString()}</td><td><button type="button" onclick="restoreOrderAdmin('${esc(o.id)}')">Restore</button></td></tr>`).join('')||'<tr><td colspan="5">'+(archived.length?'No archived orders match your search.':'No archived orders.')+'</td></tr>';
+ if(archivedRows) archivedRows.innerHTML=(await Promise.all(archivedVisible.map(async o=>{
+  const avatar=await adminCustomerAvatar(o.user_id,o.customer_name);
+  return `<tr><td><b>${esc(String(o.id).slice(0,8).toUpperCase())}</b><br><small>${new Date(o.created_at).toLocaleDateString()}</small></td><td><div class="admin-customer-cell">${avatar}<div>${esc(o.customer_name)}<br><small>${esc(o.phone)}</small></div></div></td><td>${titleCase(o.status)}</td><td>${new Date(o.archived_at).toLocaleString()}</td><td><button type="button" onclick="restoreOrderAdmin('${esc(o.id)}')">Restore</button></td></tr>`;
+ }))).join('')||'<tr><td colspan="5">'+(archived.length?'No archived orders match your search.':'No archived orders.')+'</td></tr>';
  $('ordersMessage').textContent=visible.length+' active order(s) match your filters; '+archivedVisible.length+' of '+archived.length+' archived orders match the archive search. Only Delivered or Cancelled orders can be archived.';
 }
 window.archiveOrderAdmin=async id=>{try{const {error}=await window.OPQ_SUPABASE.from('orders').update({archived_at:new Date().toISOString()}).eq('id',id).in('status',['delivered','cancelled']).is('archived_at',null);if(error)throw error;await renderOrders();}catch(e){$('ordersMessage').textContent='Could not archive order: '+e.message}};
