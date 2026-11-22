@@ -613,3 +613,10 @@ footer a:hover{color:#fff}
 .public-homepage .catalog-search-btn:hover{background:#203c60;transform:translateY(-1px)}
 .public-homepage .catalog-search-btn:focus-visible{outline:2px solid #142b4a;outline-offset:2px}
 @media(max-width:900px){.public-homepage .shop-tools .search{width:100%}}
+
+
+/* P&Q email support links */
+.contact-cards a{min-width:0}
+.footer-support{display:flex;gap:16px;flex-wrap:wrap;align-items:center;justify-content:center}
+.footer-support a{font-size:11px;font-weight:600;text-decoration:underline;text-underline-offset:4px}
+@media(max-width:700px){.footer-support{gap:12px}}
