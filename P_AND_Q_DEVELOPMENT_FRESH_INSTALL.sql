@@ -1507,6 +1507,13 @@ comment on column public.tailoring_requests.quoted_amount_kes is
 commit;
 
 
+-- Create the private avatar bucket before its V13.2 access policies.
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES ('customer-avatars','customer-avatars',false,3145728,ARRAY['image/jpeg','image/png','image/webp'])
+ON CONFLICT (id) DO UPDATE
+SET public=false, file_size_limit=3145728,
+    allowed_mime_types=ARRAY['image/jpeg','image/png','image/webp'];
+
 -- ===== SOURCE: V13_2_CUSTOMER_AVATAR_ACCESS_FIX.sql =====
 
 -- V13.2: Repair private customer-avatar read access.
